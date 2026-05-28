@@ -1,0 +1,135 @@
+@import 'tailwindcss';
+
+/*
+  icebreaker — "polar dusk" theme
+  ---------------------------------
+  Cold (glacial cyan/teal) is the dominant palette; warmth (ember coral / amber)
+  is the sharp accent that represents the ice breaking and a connection forming.
+  The signature gradient `--grad-thaw` runs cold -> warm.
+*/
+
+@theme {
+  /* base atmosphere */
+  --color-abyss: #050811;
+  --color-midnight: #0a0f1e;
+  --color-glacier: #0e1630;
+
+  /* cold accents */
+  --color-frost: #e6f6ff;
+  --color-ice: #a5e9ff;
+  --color-glacial: #5ed3ff;
+  --color-cyan-deep: #2aa7e0;
+  --color-teal: #2dd4bf;
+
+  /* warm accents (the "thaw") */
+  --color-ember: #ff6b5e;
+  --color-coral: #ff8e72;
+  --color-amber: #ffb454;
+  --color-blush: #ff5d8f;
+
+  /* fonts */
+  --font-display: 'Fraunces', ui-serif, Georgia, serif;
+  --font-body: 'Hanken Grotesk', ui-sans-serif, system-ui, sans-serif;
+
+  /* motion */
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* radii */
+  --radius-card: 28px;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  color: var(--color-frost);
+  background: var(--color-abyss);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overscroll-behavior: none;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+/* The signature thaw gradient as reusable utilities */
+@utility text-thaw {
+  background-image: linear-gradient(100deg, var(--color-glacial), var(--color-coral) 70%, var(--color-amber));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@utility bg-thaw {
+  background-image: linear-gradient(100deg, var(--color-glacial), var(--color-ember) 75%, var(--color-amber));
+}
+
+/* Frosted-glass surface */
+@utility glass {
+  background: color-mix(in oklab, var(--color-frost) 7%, transparent);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  border: 1px solid color-mix(in oklab, var(--color-frost) 14%, transparent);
+}
+
+/* Subtle film grain to kill banding in the gradients */
+@utility grain {
+  position: relative;
+}
+.grain::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.04;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* keyframes */
+@keyframes float-slow {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(0, -4%, 0) scale(1.06); }
+}
+@keyframes drift {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(3%, 2%, 0); }
+}
+@keyframes rise {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes pulse-ring {
+  0% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-ember) 50%, transparent); }
+  70% { box-shadow: 0 0 0 18px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+
+.animate-rise { animation: rise 0.6s var(--ease-out-soft) both; }
+
+/* hide scrollbars on the app shell while keeping scroll */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

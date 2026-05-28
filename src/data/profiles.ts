@@ -1,0 +1,98 @@
+import type { Profile } from '../types'
+
+// Mock dating pool for the POC. Gradients seed the locally-generated portraits
+// (no network images), tuned to the polar-dusk palette.
+export const PROFILES: Profile[] = [
+  {
+    id: 'p1',
+    name: 'Maya',
+    age: 27,
+    location: '3 km away',
+    bio: 'Cartographer of good coffee. I will absolutely judge your go-to order (kindly).',
+    vibes: ['Foodie', 'Traveler', 'Early bird'],
+    gradient: ['#5ed3ff', '#7b8cff'],
+    prompt: { question: 'My most controversial opinion', answer: 'Pineapple belongs on pizza and on the debate stage.' },
+  },
+  {
+    id: 'p2',
+    name: 'Theo',
+    age: 30,
+    location: '8 km away',
+    bio: 'Rock climber, terrible at chess but I will still challenge you to it.',
+    vibes: ['Adventurer', 'Gym rat', 'Night owl'],
+    gradient: ['#2dd4bf', '#5ed3ff'],
+    prompt: { question: 'We will get along if', answer: 'you can name three constellations or pretend convincingly.' },
+  },
+  {
+    id: 'p3',
+    name: 'Priya',
+    age: 25,
+    location: '1 km away',
+    bio: 'Reading two books at once and finishing neither. Plant mom of eleven.',
+    vibes: ['Bookworm', 'Homebody', 'Artist'],
+    gradient: ['#ff8e72', '#ffb454'],
+    prompt: { question: 'My simple pleasures', answer: 'rain on the window, a closed tab, a found playlist.' },
+  },
+  {
+    id: 'p4',
+    name: 'Daniel',
+    age: 29,
+    location: '12 km away',
+    bio: 'Amateur chef, professional snack enthusiast. I make a mean shakshuka.',
+    vibes: ['Foodie', 'Homebody', 'Gamer'],
+    gradient: ['#ff6b5e', '#ff5d8f'],
+    prompt: { question: 'The way to my heart', answer: 'is a perfectly timed meme and small acts of garlic.' },
+  },
+  {
+    id: 'p5',
+    name: 'Aisha',
+    age: 26,
+    location: '5 km away',
+    bio: 'Synth player in a band you have not heard of (yet). Sunset chaser.',
+    vibes: ['Artist', 'Night owl', 'Traveler'],
+    gradient: ['#a78bfa', '#ff8e72'],
+    prompt: { question: 'Two truths and a lie', answer: 'I have toured three countries, I can juggle, I hate cheese.' },
+  },
+  {
+    id: 'p6',
+    name: 'Leo',
+    age: 31,
+    location: '6 km away',
+    bio: 'Trail runner and documentary hoarder. Dog is non-negotiable on dates.',
+    vibes: ['Adventurer', 'Gym rat', 'Early bird'],
+    gradient: ['#34d399', '#5ed3ff'],
+    prompt: { question: 'Ideal Sunday', answer: '14 km of trail, then doing absolutely nothing with purpose.' },
+  },
+  {
+    id: 'p7',
+    name: 'Sofia',
+    age: 24,
+    location: '2 km away',
+    bio: 'Ceramicist with cold hands and warm opinions. Tea over coffee, fight me.',
+    vibes: ['Artist', 'Homebody', 'Bookworm'],
+    gradient: ['#22d3ee', '#a78bfa'],
+    prompt: { question: 'A green flag for me', answer: 'you text back and you have a library card.' },
+  },
+  {
+    id: 'p8',
+    name: 'Marcus',
+    age: 28,
+    location: '9 km away',
+    bio: 'Trivia night captain looking for a co-captain. Undefeated, mostly.',
+    vibes: ['Gamer', 'Night owl', 'Foodie'],
+    gradient: ['#fbbf24', '#ff6b5e'],
+    prompt: { question: 'My winning category', answer: 'obscure geography and 90s one-hit wonders.' },
+  },
+]
+
+/** The signed-in user (mocked for the POC — no auth yet). */
+export const ME: Profile = {
+  id: 'me',
+  name: 'You',
+  age: 28,
+  location: 'Here',
+  bio: 'Just here to break the ice. Ask me anything — preferably in trivia form.',
+  vibes: ['Foodie', 'Traveler', 'Gamer'],
+  gradient: ['#5ed3ff', '#ff8e72'],
+  prompt: { question: 'My icebreaker style', answer: 'questions first, small talk never.' },
+}
