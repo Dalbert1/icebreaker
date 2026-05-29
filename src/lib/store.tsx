@@ -378,7 +378,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       },
       reset: () => dispatch({ type: 'RESET' }),
       startGame: async (matchId, category) => {
-        const questions = await questionProvider.getQuestions(category, 7)
+        // Each successive game for this match rotates to a fresh window of the
+        // question bank so replays don't repeat the same round.
+        const variant = state.games.filter((g) => g.matchId === matchId).length
+        const questions = await questionProvider.getQuestions(category, 7, variant)
         const id = `g${Date.now()}-${gameCounter++}`
         const seed = Array.from(id).reduce((h, c) => (h * 31 + c.charCodeAt(0)) | 0, 7)
         const game: GameSession = {

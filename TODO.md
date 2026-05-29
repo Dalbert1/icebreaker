@@ -20,22 +20,16 @@ deliberately deferred until device testing is done.
       screenshot-worthy moment. _(this change)_
 - [x] **2. Bridge game → chat + make Chat functional (local-only).** Real local
       message state in the store + auto-generated conversation starters seeded
-      from the just-played game's results. _(this change)_
+      from the just-played game's results.
+- [x] **3. Question variety / bank depth.** Doubled the mock bank to 14
+      questions/category and added a per-game **rotating window**
+      (`getQuestions(category, count, variant)`) so consecutive games for a match
+      draw a fresh, non-overlapping round (wraps once the bank is exhausted).
+      _(this change)_
 
 ---
 
 ## ⬜ Next up
-
-### 3. Question variety / bank depth
-Each category currently has **exactly 7** questions and a game requests 7
-(`store.tsx` `startGame`), so every round in a category is the *same 7 prompts* —
-"Play another game" replays identical questions. Fix by either:
-- expanding `src/data/mockQuestions.ts` to well beyond 7 per category, and/or
-- varying the per-game seed (currently `MockQuestionProvider` keys the shuffle on
-  `seed:category` only, so it's stable across games — mix in the game id).
-
-Also reconcile the hardcoded "Seven questions" copy in `Game.tsx` if count
-changes. **Cheap, high believability ROI.**
 
 ### 4. Centralize & make the thaw model tunable
 The thaw constants are scattered and duplicated:

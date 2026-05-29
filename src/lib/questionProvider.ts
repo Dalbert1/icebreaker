@@ -9,7 +9,17 @@ import { QUESTION_SEEDS, questionFromSeed } from '../data/mockQuestions'
  */
 export interface QuestionProvider {
   readonly name: string
-  getQuestions(category: TriviaCategory, count: number): Promise<Question[]>
+  /**
+   * `variant` rotates the selection so each successive game for a match draws a
+   * fresh, non-overlapping round (until the bank is exhausted, then it wraps).
+   * Same `(category, count, variant)` always yields the same questions, so games
+   * stay reproducible across reloads and in tests.
+   */
+  getQuestions(
+    category: TriviaCategory,
+    count: number,
+    variant?: number,
+  ): Promise<Question[]>
 }
 
 /** Small seeded PRNG (mulberry32) so games are reproducible in tests. */
@@ -45,18 +55,34 @@ export class MockQuestionProvider implements QuestionProvider {
     this.seed = seed
   }
 
-  async getQuestions(category: TriviaCategory, count: number): Promise<Question[]> {
-    const rng = makeRng(hashSeed(`${this.seed}:${category}`))
+  async getQuestions(
+    category: TriviaCategory,
+    count: number,
+    variant = 0,
+  ): Promise<Question[]> {
     const pool = QUESTION_SEEDS.filter((q) => q.category === category)
-    // Shuffle the pool deterministically, then take `count`.
-    const order = [...pool]
-    for (let i = order.length - 1; i > 0; i--) {
-      const j = Math.floor(rng() * (i + 1))
-      ;[order[i], order[j]] = [order[j], order[i]]
+    if (pool.length === 0) return []
+
+    // Stable, category-wide shuffle = a consistent "ring" of questions.
+    const ringRng = makeRng(hashSeed(`${this.seed}:${category}`))
+    const ring = [...pool]
+    for (let i = ring.length - 1; i > 0; i--) {
+      const j = Math.floor(ringRng() * (i + 1))
+      ;[ring[i], ring[j]] = [ring[j], ring[i]]
     }
-    return order
-      .slice(0, count)
-      .map((seed, i) => questionFromSeed(seed, `${category}-${i}`, rng))
+
+    // Each variant takes the next window of the ring, so consecutive games are
+    // disjoint until the bank wraps around.
+    const start = ((variant * count) % ring.length + ring.length) % ring.length
+    const picked = Array.from({ length: Math.min(count, ring.length) }, (_, k) =>
+      ring[(start + k) % ring.length],
+    )
+
+    // Option order varies per variant so even a repeated question looks fresh.
+    const optRng = makeRng(hashSeed(`${this.seed}:${category}:${variant}`))
+    return picked.map((seed, i) =>
+      questionFromSeed(seed, `${category}-${variant}-${i}`, optRng),
+    )
   }
 }
 
@@ -82,7 +108,11 @@ export class OpenTriviaProvider implements QuestionProvider {
   readonly name = 'opentdb'
   private fallback = new MockQuestionProvider()
 
-  async getQuestions(category: TriviaCategory, count: number): Promise<Question[]> {
+  async getQuestions(
+    category: TriviaCategory,
+    count: number,
+    variant = 0,
+  ): Promise<Question[]> {
     try {
       const id = OTDB_CATEGORY_IDS[category]
       const url = `https://opentdb.com/api.php?amount=${count}&category=${id}&type=multiple`
@@ -117,7 +147,7 @@ export class OpenTriviaProvider implements QuestionProvider {
         }
       })
     } catch {
-      return this.fallback.getQuestions(category, count)
+      return this.fallback.getQuestions(category, count, variant)
     }
   }
 }
