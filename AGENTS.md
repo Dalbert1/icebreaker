@@ -178,7 +178,7 @@ IDEAS.md        informal feature ideas scratchpad
 <!-- BEGIN BEADS INTEGRATION v:1 profile:minimal hash:970c3bf2 -->
 ## Beads Issue Tracker
 
-This project uses **bd (beads)** for issue tracking. Run `bd prime` to see full workflow context and commands.
+This project uses **bd (beads)** for issue tracking. Run `bd prime` to see full workflow context and commands. Setting it up on a new machine? See [`docs/BEADS_SETUP.md`](docs/BEADS_SETUP.md).
 
 ### Quick Reference
 
