@@ -11,16 +11,20 @@ import type { Profile } from '../types'
 export function GradientPortrait({
   profile,
   thaw = 1,
+  revealPhoto = true,
   className = '',
 }: {
   profile: Profile
   /** 0 = fully frosted/iced, 1 = fully clear. */
   thaw?: number
+  /** When false, use the generated silhouette even if the profile has a photo. */
+  revealPhoto?: boolean
   className?: string
 }) {
   const [c1, c2] = profile.gradient
   const frost = 1 - Math.max(0, Math.min(1, thaw))
   const uid = `pp-${profile.id}`
+  const shouldRenderPhoto = revealPhoto && Boolean(profile.photo)
 
   return (
     <div className={`relative overflow-hidden ${className}`}>
@@ -30,7 +34,7 @@ export function GradientPortrait({
         style={{ background: `radial-gradient(120% 90% at 50% 30%, ${c1}, ${c2})` }}
       />
 
-      {profile.photo ? (
+      {shouldRenderPhoto ? (
         <img
           src={profile.photo}
           alt={profile.name}
