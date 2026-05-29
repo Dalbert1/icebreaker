@@ -123,6 +123,40 @@ describe('UNMATCH', () => {
   })
 })
 
+describe('REPORT', () => {
+  it('blocks the profile and tears down the match, games, and messages', () => {
+    const start: State = {
+      ...withMatch('p1'),
+      pendingMatchId: 'p1',
+      deck: ['p1', 'p2'],
+      games: [gameFor('p1', 'g1'), gameFor('p2', 'g2')],
+      messages: [
+        { id: 'm1', matchId: 'p1', sender: 'you', body: 'a', sentAt: 0 },
+        { id: 'm2', matchId: 'p2', sender: 'you', body: 'b', sentAt: 0 },
+      ],
+    }
+    const next = reducer(start, { type: 'REPORT', id: 'p1' })
+    expect(next.blocked).toContain('p1')
+    expect(next.matches.some((m) => m.profileId === 'p1')).toBe(false)
+    expect(next.games.map((g) => g.matchId)).toEqual(['p2'])
+    expect(next.messages.map((m) => m.matchId)).toEqual(['p2'])
+    expect(next.deck).toEqual(['p2'])
+    expect(next.pendingMatchId).toBeUndefined()
+  })
+
+  it('does not duplicate an already-blocked id', () => {
+    const start: State = { ...initialState(), blocked: ['p1'] }
+    const next = reducer(start, { type: 'REPORT', id: 'p1' })
+    expect(next.blocked).toEqual(['p1'])
+  })
+
+  it('keeps blocked profiles out of the deck on preference change', () => {
+    const start: State = { ...initialState(), blocked: ['p1'] }
+    const next = reducer(start, { type: 'SET_PREFERENCE', preference: 'both' })
+    expect(next.deck).not.toContain('p1')
+  })
+})
+
 describe('DISMISS_MATCH / RESET', () => {
   it('DISMISS_MATCH clears only the pending flag', () => {
     const next = reducer({ ...withMatch('p1'), pendingMatchId: 'p1' }, { type: 'DISMISS_MATCH' })

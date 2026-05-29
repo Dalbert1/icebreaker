@@ -1,8 +1,10 @@
+import { useState } from 'react'
 import { motion } from 'motion/react'
 import { useNavigate } from 'react-router-dom'
 import type { Profile } from '../types'
 import { GradientPortrait } from './GradientPortrait'
 import { ME } from '../data/profiles'
+import { useStore } from '../lib/store'
 
 /**
  * Celebration when a like becomes a match. Both portraits sit frosted —
@@ -16,6 +18,8 @@ export function MatchModal({
   onClose: () => void
 }) {
   const navigate = useNavigate()
+  const { reportProfile } = useStore()
+  const [confirmReport, setConfirmReport] = useState(false)
 
   return (
     <motion.div
@@ -83,6 +87,38 @@ export function MatchModal({
         >
           Keep swiping
         </button>
+
+        {confirmReport ? (
+          <div className="mt-3 rounded-2xl border border-ember/30 bg-ember/5 p-3 text-center">
+            <p className="text-xs text-frost/70">
+              Report &amp; block {profile.name}? They'll be removed and won't reappear.
+            </p>
+            <div className="mt-2 flex gap-2">
+              <button
+                onClick={() => {
+                  reportProfile(profile.id)
+                  onClose()
+                }}
+                className="bg-ember flex-1 rounded-xl py-2 text-xs font-semibold text-abyss"
+              >
+                Report &amp; block
+              </button>
+              <button
+                onClick={() => setConfirmReport(false)}
+                className="flex-1 rounded-xl py-2 text-xs font-medium text-frost/60 hover:text-frost"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        ) : (
+          <button
+            onClick={() => setConfirmReport(true)}
+            className="mt-3 text-xs text-frost/35 hover:text-ember"
+          >
+            Report {profile.name}
+          </button>
+        )}
       </motion.div>
     </motion.div>
   )

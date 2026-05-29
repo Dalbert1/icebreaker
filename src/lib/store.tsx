@@ -29,6 +29,8 @@ export interface State {
   deck: string[]
   liked: string[]
   passed: string[]
+  /** Reported/blocked profile ids — never resurface in the deck or matches. */
+  blocked: string[]
   matches: Match[]
   games: GameSession[]
   /** Local-only chat messages, keyed implicitly by `matchId`. */
@@ -44,6 +46,7 @@ export type Action =
   | { type: 'LIKE'; id: string }
   | { type: 'PASS'; id: string }
   | { type: 'UNMATCH'; id: string }
+  | { type: 'REPORT'; id: string }
   | { type: 'DISMISS_MATCH' }
   | { type: 'ADD_GAME'; game: GameSession }
   | { type: 'SEND_MESSAGE'; message: Message }
@@ -71,6 +74,7 @@ export function initialState(): State {
     deck: [],
     liked: [],
     passed: [],
+    blocked: [],
     matches: [],
     games: [],
     messages: [],
@@ -109,6 +113,7 @@ export function reducer(state: State, action: Action): State {
       const deck = deckForPreference(action.preference, [
         ...state.liked,
         ...state.passed,
+        ...state.blocked,
       ])
       return { ...state, genderPreference: action.preference, deck }
     }
@@ -144,6 +149,21 @@ export function reducer(state: State, action: Action): State {
     case 'UNMATCH':
       return {
         ...state,
+        matches: state.matches.filter((m) => m.profileId !== action.id),
+        games: state.games.filter((g) => g.matchId !== action.id),
+        messages: state.messages.filter((m) => m.matchId !== action.id),
+        pendingMatchId:
+          state.pendingMatchId === action.id ? undefined : state.pendingMatchId,
+      }
+    case 'REPORT':
+      // Report = block: drop the match (and its games/messages) and remember
+      // the id so they never resurface in the deck or as a match again.
+      return {
+        ...state,
+        blocked: state.blocked.includes(action.id)
+          ? state.blocked
+          : [...state.blocked, action.id],
+        deck: state.deck.filter((id) => id !== action.id),
         matches: state.matches.filter((m) => m.profileId !== action.id),
         games: state.games.filter((g) => g.matchId !== action.id),
         messages: state.messages.filter((m) => m.matchId !== action.id),
@@ -204,6 +224,8 @@ interface Store {
   like: (id: string) => void
   pass: (id: string) => void
   unmatch: (id: string) => void
+  /** Report + block a profile (local-only in the POC). */
+  reportProfile: (id: string) => void
   dismissMatch: () => void
   sendMessage: (matchId: string, body: string) => void
   startGame: (matchId: string, category: TriviaCategory) => Promise<string>
@@ -284,6 +306,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         deck: state.deck,
         liked: state.liked,
         passed: state.passed,
+        blocked: state.blocked,
         matches: state.matches,
         games: state.games,
         messages: state.messages,
@@ -353,6 +376,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       like: (id) => dispatch({ type: 'LIKE', id }),
       pass: (id) => dispatch({ type: 'PASS', id }),
       unmatch: (id) => dispatch({ type: 'UNMATCH', id }),
+      reportProfile: (id) => {
+        // TODO: when the backend lands, POST the report to a moderation queue
+        // (reporter, reported id, reason, timestamp) before/after the local
+        // block. Local-only for the POC so testing stays credential-free.
+        dispatch({ type: 'REPORT', id })
+      },
       dismissMatch: () => dispatch({ type: 'DISMISS_MATCH' }),
       sendMessage: (matchId, body) => {
         const trimmed = body.trim()

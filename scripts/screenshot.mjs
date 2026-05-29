@@ -95,6 +95,16 @@ try {
   await page.waitForTimeout(300)
   await shot(page, '08b-chat-message')
 
+  // Safety affordances: open the header menu, then the report & block confirm.
+  await page.getByRole('button', { name: 'Safety options' }).click()
+  await page.waitForTimeout(200)
+  await shot(page, '08e-safety-menu')
+  await page.getByRole('menuitem', { name: 'Report & block' }).click()
+  await page.waitForTimeout(200)
+  await shot(page, '08f-report-confirm')
+  await page.getByRole('button', { name: 'Cancel' }).click()
+  await page.waitForTimeout(200)
+
   // Play a SECOND icebreaker to fully break the ice -> the thaw reveal fires.
   await page.getByRole('link', { name: /Play Icebreaker/ }).click()
   await page.waitForTimeout(300)

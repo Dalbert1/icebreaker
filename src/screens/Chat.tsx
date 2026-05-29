@@ -10,8 +10,10 @@ import { ThawBar, VibePill } from '../components/ui'
 export function Chat() {
   const { matchId = '' } = useParams()
   const navigate = useNavigate()
-  const { state, sendMessage } = useStore()
+  const { state, sendMessage, unmatch, reportProfile } = useStore()
   const [input, setInput] = useState('')
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [confirming, setConfirming] = useState<'report' | 'unmatch' | null>(null)
 
   const profile = PROFILES.find((p) => p.id === matchId)
   const match = state.matches.find((m) => m.profileId === matchId)
@@ -106,12 +108,55 @@ export function Chat() {
           </div>
         </div>
 
-        <Link
-          to={`/game/${matchId}`}
-          className="shrink-0 text-xs text-frost/50 hover:text-frost/80"
-        >
-          Profile
-        </Link>
+        <div className="relative shrink-0">
+          <button
+            onClick={() => setMenuOpen((o) => !o)}
+            className="flex h-9 w-9 items-center justify-center rounded-full text-frost/60 hover:text-frost"
+            aria-label="Safety options"
+            aria-haspopup="menu"
+            aria-expanded={menuOpen}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <circle cx="12" cy="5" r="1.8" />
+              <circle cx="12" cy="12" r="1.8" />
+              <circle cx="12" cy="19" r="1.8" />
+            </svg>
+          </button>
+          {menuOpen && (
+            <>
+              <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} aria-hidden />
+              <div
+                role="menu"
+                className="glass absolute right-0 top-11 z-20 w-44 overflow-hidden p-1 text-sm shadow-xl"
+                style={{
+                  borderRadius: '16px',
+                  background: 'color-mix(in oklab, var(--color-midnight) 94%, transparent)',
+                }}
+              >
+                <button
+                  role="menuitem"
+                  onClick={() => {
+                    setMenuOpen(false)
+                    setConfirming('unmatch')
+                  }}
+                  className="block w-full rounded-xl px-3 py-2.5 text-left text-frost/85 hover:bg-frost/10"
+                >
+                  Unmatch
+                </button>
+                <button
+                  role="menuitem"
+                  onClick={() => {
+                    setMenuOpen(false)
+                    setConfirming('report')
+                  }}
+                  className="block w-full rounded-xl px-3 py-2.5 text-left text-ember hover:bg-ember/10"
+                >
+                  Report &amp; block
+                </button>
+              </div>
+            </>
+          )}
+        </div>
       </header>
 
       {/* Profile reveal strip */}
@@ -216,6 +261,55 @@ export function Chat() {
           Play Icebreaker
         </Link>
       </div>
+
+      {/* Safety confirmation (unmatch / report & block) */}
+      {confirming && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
+          <div
+            className="absolute inset-0 bg-abyss/70 backdrop-blur-sm"
+            onClick={() => setConfirming(null)}
+            aria-hidden
+          />
+          <div
+            role="alertdialog"
+            aria-modal="true"
+            className="glass relative z-10 w-full max-w-sm p-6 text-center"
+            style={{ borderRadius: 'var(--radius-card)' }}
+          >
+            <h2 className="text-2xl text-frost">
+              {confirming === 'report' ? 'Report & block' : 'Unmatch'} {profile.name}?
+            </h2>
+            <p className="mt-2 text-sm text-frost/65">
+              {confirming === 'report'
+                ? `We'll remove this match and you won't see ${profile.name} again. Reports help keep icebreaker safe.`
+                : `This ends your match with ${profile.name} and clears your chat. This can't be undone.`}
+            </p>
+            <div className="mt-6 flex flex-col gap-2">
+              <button
+                onClick={() => {
+                  if (confirming === 'report') reportProfile(matchId)
+                  else unmatch(matchId)
+                  setConfirming(null)
+                  navigate('/matches', { replace: true })
+                }}
+                className={`w-full rounded-2xl py-3.5 font-semibold transition-transform active:scale-[0.98] ${
+                  confirming === 'report'
+                    ? 'bg-ember text-abyss'
+                    : 'border border-ember/50 text-ember hover:bg-ember/10'
+                }`}
+              >
+                {confirming === 'report' ? 'Report & block' : 'Unmatch'}
+              </button>
+              <button
+                onClick={() => setConfirming(null)}
+                className="w-full rounded-2xl py-3 text-sm font-medium text-frost/60 hover:text-frost"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
