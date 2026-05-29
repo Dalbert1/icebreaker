@@ -4,11 +4,11 @@ import { motion, AnimatePresence } from 'motion/react'
 import { useStore } from '../lib/store'
 import { PROFILES } from '../data/profiles'
 import { CATEGORIES } from '../data/mockQuestions'
-import type { GameSession, TriviaCategory } from '../types'
+import type { GameSession, Profile, TriviaCategory } from '../types'
 import { GradientPortrait } from '../components/GradientPortrait'
 import { ThawBar } from '../components/ui'
 
-type Phase = 'category' | 'playing' | 'results'
+type Phase = 'category' | 'playing' | 'wantchat'
 
 export function Game() {
   const { matchId = '' } = useParams()
@@ -58,26 +58,28 @@ export function Game() {
 
   return (
     <div className="flex h-full flex-col px-4">
-      <header className="flex items-center gap-3 py-3">
-        <button
-          onClick={() => navigate(-1)}
-          className="glass flex h-9 w-9 items-center justify-center rounded-full text-frost/70"
-          aria-label="Back"
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M15 18l-6-6 6-6" />
-          </svg>
-        </button>
-        <GradientPortrait profile={profile} thaw={liveThaw} className="h-11 w-11 rounded-xl" />
-        <div className="min-w-0 flex-1">
-          <h2 className="truncate text-lg leading-tight text-frost">
-            {liveThaw >= 0.5 ? profile.name : `${profile.name.charAt(0)}······`}
-          </h2>
-          <div className="mt-0.5">
-            <ThawBar thaw={liveThaw} showLabel={false} />
+      {phase !== 'wantchat' && (
+        <header className="flex items-center gap-3 py-3">
+          <button
+            onClick={() => navigate(-1)}
+            className="glass flex h-9 w-9 items-center justify-center rounded-full text-frost/70"
+            aria-label="Back"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
+          </button>
+          <GradientPortrait profile={profile} thaw={liveThaw} className="h-11 w-11 rounded-xl" />
+          <div className="min-w-0 flex-1">
+            <h2 className="truncate text-lg leading-tight text-frost">
+              {liveThaw >= 0.5 ? profile.name : `${profile.name.charAt(0)}······`}
+            </h2>
+            <div className="mt-0.5">
+              <ThawBar thaw={liveThaw} showLabel={false} />
+            </div>
           </div>
-        </div>
-      </header>
+        </header>
+      )}
 
       <div className="flex flex-1 flex-col">
         {phase === 'category' && <CategoryPicker loading={loading} onPick={pickCategory} />}
@@ -94,7 +96,7 @@ export function Game() {
             onNext={() => {
               if (qIndex + 1 >= game.questions.length) {
                 completeGame(game.id)
-                setPhase('results')
+                setPhase('wantchat')
               } else {
                 setQIndex((i) => i + 1)
                 setPicked(null)
@@ -102,8 +104,14 @@ export function Game() {
             }}
           />
         )}
-        {phase === 'results' && game && (
-          <Results game={game} profileName={profile.name} onReplay={() => setPhase('category')} />
+        {phase === 'wantchat' && game && profile && (
+          <WantToChat
+            game={game}
+            profile={profile}
+            thaw={liveThaw}
+            onYes={() => navigate(`/chat/${matchId}`, { replace: true })}
+            onNo={() => navigate('/discover', { replace: true })}
+          />
         )}
       </div>
     </div>
@@ -128,10 +136,11 @@ function CategoryPicker({
   return (
     <div className="flex flex-1 flex-col">
       <div className="py-2 text-center">
-        <h1 className="text-2xl">Pick a category</h1>
-        <p className="text-sm text-frost/55">Five questions. Every answer melts a little ice.</p>
+        <h1 className="text-2xl">Pick an icebreaker</h1>
+        <p className="text-sm text-frost/55">Seven questions. Every answer melts a little ice.</p>
       </div>
-      <div className="grid flex-1 grid-cols-2 content-center gap-3">
+      <div className="flex flex-1 items-center pb-10">
+        <div className="grid w-full grid-cols-2 gap-3">
         {CATEGORIES.map((c) => (
           <button
             key={c}
@@ -144,6 +153,7 @@ function CategoryPicker({
             <span className="text-sm font-medium text-frost/90">{c}</span>
           </button>
         ))}
+        </div>
       </div>
     </div>
   )
@@ -243,14 +253,18 @@ function PlayRound({
   )
 }
 
-function Results({
+function WantToChat({
   game,
-  profileName,
-  onReplay,
+  profile,
+  thaw,
+  onYes,
+  onNo,
 }: {
   game: GameSession
-  profileName: string
-  onReplay: () => void
+  profile: Profile
+  thaw: number
+  onYes: () => void
+  onNo: () => void
 }) {
   const stats = useMemo(() => {
     const yours = game.userAnswers.filter((a, i) => a === game.questions[i].correctIndex).length
@@ -260,46 +274,69 @@ function Results({
   }, [game])
 
   return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-5 py-4 text-center">
+    <div className="flex flex-1 flex-col items-center justify-center gap-6 px-2 py-4 text-center">
       <motion.div
-        initial={{ scale: 0.6, opacity: 0 }}
+        initial={{ scale: 0.7, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        transition={{ type: 'spring', stiffness: 240, damping: 18 }}
+        transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+        className="flex flex-col items-center gap-4"
       >
-        <p className="font-display text-sm uppercase tracking-[0.3em] text-ice/70">Round complete</p>
-        <h1 className="mt-1 text-4xl">
-          Ice <span className="text-thaw">broken</span>
-        </h1>
+        <GradientPortrait
+          profile={profile}
+          thaw={thaw}
+          className="h-32 w-32 rounded-3xl"
+        />
+        <div>
+          <p className="font-display text-sm uppercase tracking-[0.3em] text-ice/70">Ice broken</p>
+          <h1 className="mt-1 text-4xl">
+            Want to <span className="text-thaw">chat?</span>
+          </h1>
+        </div>
       </motion.div>
 
-      <div className="grid w-full max-w-xs grid-cols-3 gap-2">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.25 }}
+        className="grid w-full max-w-xs grid-cols-3 gap-2"
+      >
         <Stat label="You" value={`${stats.yours}/${stats.total}`} />
-        <Stat label={profileName} value={`${stats.theirs}/${stats.total}`} />
+        <Stat label={profile.name} value={`${stats.theirs}/${stats.total}`} />
         <Stat label="In sync" value={`${stats.agreed}/${stats.total}`} accent />
-      </div>
+      </motion.div>
 
-      <p className="max-w-xs text-sm text-frost/65">
+      <motion.p
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.3 }}
+        className="max-w-xs text-sm text-frost/65"
+      >
         {stats.agreed >= stats.total - 1
-          ? `You and ${profileName} are dangerously in sync. 🔥`
+          ? `You and ${profile.name} are dangerously in sync. 🔥`
           : stats.agreed >= stats.total / 2
-            ? `Solid overlap with ${profileName}. The conversation writes itself.`
-            : `Opposites attract — plenty to talk about with ${profileName}.`}
-      </p>
+            ? `Solid overlap with ${profile.name}. The conversation writes itself.`
+            : `Opposites attract — plenty to talk about with ${profile.name}.`}
+      </motion.p>
 
-      <div className="mt-2 flex w-full max-w-xs flex-col gap-2">
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.35 }}
+        className="flex w-full max-w-xs flex-col gap-3"
+      >
         <button
-          onClick={onReplay}
-          className="bg-thaw w-full rounded-2xl py-3.5 font-semibold text-abyss transition-transform active:scale-[0.98]"
+          onClick={onYes}
+          className="bg-thaw w-full rounded-2xl py-4 text-lg font-semibold text-abyss transition-transform active:scale-[0.98]"
         >
-          Play another round
+          Yes, please.
         </button>
-        <Link
-          to="/matches"
-          className="glass w-full rounded-2xl py-3 text-sm font-medium text-frost/80"
+        <button
+          onClick={onNo}
+          className="glass w-full rounded-2xl py-3.5 text-sm font-medium text-frost/70 transition-transform active:scale-[0.98]"
         >
-          Back to matches
-        </Link>
-      </div>
+          No thanks.
+        </button>
+      </motion.div>
     </div>
   )
 }

@@ -10,6 +10,8 @@ import type { GameSession, Match, Question, TriviaCategory } from '../types'
 import { PROFILES } from '../data/profiles'
 import { questionProvider } from './questionProvider'
 
+export type GenderPreference = 'male' | 'female' | 'both'
+
 interface State {
   /** Remaining profile ids in the discovery deck (top of stack = last item). */
   deck: string[]
@@ -19,6 +21,8 @@ interface State {
   games: GameSession[]
   /** Set when a like turns into a match, so the UI can show the match modal. */
   pendingMatchId?: string
+  /** Undefined means onboarding not completed yet. */
+  genderPreference?: GenderPreference
 }
 
 type Action =
@@ -28,17 +32,27 @@ type Action =
   | { type: 'ADD_GAME'; game: GameSession }
   | { type: 'ANSWER'; gameId: string; qIndex: number; optIndex: number }
   | { type: 'COMPLETE_GAME'; gameId: string }
+  | { type: 'SET_PREFERENCE'; preference: GenderPreference }
   | { type: 'RESET' }
 
-const STORAGE_KEY = 'icebreaker.state.v1'
+const STORAGE_KEY = 'icebreaker.state.v2'
+
+function deckForPreference(preference: GenderPreference, exclude: string[]): string[] {
+  const pool =
+    preference === 'both'
+      ? PROFILES
+      : PROFILES.filter((p) => p.gender === preference)
+  return pool.map((p) => p.id).filter((id) => !exclude.includes(id))
+}
 
 function initialState(): State {
   return {
-    deck: PROFILES.map((p) => p.id),
+    deck: [],
     liked: [],
     passed: [],
     matches: [],
     games: [],
+    genderPreference: undefined,
   }
 }
 
@@ -65,6 +79,13 @@ function thawFor(matchId: string, games: GameSession[]): number {
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
+    case 'SET_PREFERENCE': {
+      const deck = deckForPreference(action.preference, [
+        ...state.liked,
+        ...state.passed,
+      ])
+      return { ...state, genderPreference: action.preference, deck }
+    }
     case 'LIKE': {
       const deck = state.deck.filter((id) => id !== action.id)
       // POC matchmaking: a like always matches back so the trivia loop is
@@ -126,6 +147,7 @@ interface Store {
   startGame: (matchId: string, category: TriviaCategory) => Promise<string>
   answer: (gameId: string, qIndex: number, optIndex: number) => void
   completeGame: (gameId: string) => void
+  setPreference: (preference: GenderPreference) => void
   reset: () => void
 }
 
@@ -170,9 +192,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       answer: (gameId, qIndex, optIndex) =>
         dispatch({ type: 'ANSWER', gameId, qIndex, optIndex }),
       completeGame: (gameId) => dispatch({ type: 'COMPLETE_GAME', gameId }),
+      setPreference: (preference) => dispatch({ type: 'SET_PREFERENCE', preference }),
       reset: () => dispatch({ type: 'RESET' }),
       startGame: async (matchId, category) => {
-        const questions = await questionProvider.getQuestions(category, 5)
+        const questions = await questionProvider.getQuestions(category, 7)
         const id = `g${Date.now()}-${gameCounter++}`
         const seed = Array.from(id).reduce((h, c) => (h * 31 + c.charCodeAt(0)) | 0, 7)
         const game: GameSession = {

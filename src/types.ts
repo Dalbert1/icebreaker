@@ -17,6 +17,7 @@ export interface Profile {
   id: string
   name: string
   age: number
+  gender: 'male' | 'female'
   /** Short city / distance line. */
   location: string
   bio: string

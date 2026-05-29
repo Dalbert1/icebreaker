@@ -66,7 +66,16 @@ $env:BASE_URL='http://localhost:4173/icebreaker'; npm run shot
 
 2. **Keep `CLAUDE.md` and `AGENTS.md` in sync** (see banner above).
 
-3. **Mock over keys.** While validating the POC, never block on credentials or
+3. **Git workflow — push to branch, not always to main.**
+   - **Claude Code** works directly on `main` and may push to `main`.
+   - **Codex / other agents** work on feature branches and must never push
+     directly to `main`. Always push to the current branch and open a PR if one
+     doesn't exist yet (`gh pr create`). Do not merge the PR — leave that for
+     the human or Claude Code.
+   - Rule of thumb: check `git branch --show-current`. If it is `main`, push
+     normally. If it is any other branch, push to that branch and open a PR.
+
+4. **Mock over keys.** While validating the POC, never block on credentials or
    external APIs. If something needs an API key or a live service, stub it with
    mock data behind an interface and leave a `// TODO` noting the real wiring.
    Trivia already follows this: see the `QuestionProvider` seam below.
@@ -98,12 +107,13 @@ images** in the POC.
 src/
   components/   Atmosphere, GradientPortrait, SwipeDeck, ProfileCard,
                 MatchModal, BottomNav, ui (Wordmark/VibePill/ThawBar/Glass)
-  screens/      Discover, Matches, Game, Profile
+  screens/      Onboarding, Discover, Matches, Chat, Game, Profile
   lib/          store.tsx (state), questionProvider.ts (trivia seam)
   data/         profiles.ts (mock pool), mockQuestions.ts (mock bank)
   types.ts      domain types
 scripts/        screenshot.mjs (Playwright verify), inspect.mjs (debug helper)
 docs/           ARCHITECTURE.md, ROADMAP.md
+IDEAS.md        informal feature ideas scratchpad
 ```
 
 ## Conventions

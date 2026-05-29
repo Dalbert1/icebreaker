@@ -11,14 +11,18 @@ import f47 from '../assets/profiles/f47.jpg'
 import f11 from '../assets/profiles/f11.jpg'
 import f13 from '../assets/profiles/f13.jpg'
 import f60 from '../assets/profiles/f60.jpg'
+import m3 from '../assets/profiles/m3.jpg'
+import m7 from '../assets/profiles/m7.jpg'
+import m12 from '../assets/profiles/m12.jpg'
+import m52 from '../assets/profiles/m52.jpg'
 
-// Mock dating pool for the POC — all Tulsa, OK. Gradients are a fallback/accent
-// behind the photo and also tint the frost overlay for the thaw mechanic.
+// Mock dating pool for the POC — all Tulsa, OK.
 export const PROFILES: Profile[] = [
   {
     id: 'p1',
     name: 'Maya',
     age: 27,
+    gender: 'female',
     location: 'Brookside · 2 mi',
     bio: 'Cartographer of good coffee — I have ranked every espresso on Cherry Street. Will absolutely judge your QT order (kindly).',
     vibes: ['Foodie', 'Traveler', 'Early bird'],
@@ -30,6 +34,7 @@ export const PROFILES: Profile[] = [
     id: 'p2',
     name: 'Theo',
     age: 30,
+    gender: 'male',
     location: 'Turkey Mountain · 6 mi',
     bio: 'Trail runner on Turkey Mountain, terrible at chess but I will still challenge you at a Blue Dome patio.',
     vibes: ['Adventurer', 'Gym rat', 'Night owl'],
@@ -41,6 +46,7 @@ export const PROFILES: Profile[] = [
     id: 'p3',
     name: 'Nia',
     age: 25,
+    gender: 'female',
     location: 'Greenwood · 1 mi',
     bio: 'Plant mom of eleven, reading two books at once near the Gathering Place. History nerd, Greenwood proud.',
     vibes: ['Bookworm', 'Homebody', 'Artist'],
@@ -52,6 +58,7 @@ export const PROFILES: Profile[] = [
     id: 'p4',
     name: 'Marcus',
     age: 29,
+    gender: 'male',
     location: 'Kendall-Whittier · 3 mi',
     bio: 'Amateur chef, professional snack enthusiast. I make a shakshuka that could win the Tulsa State Fair.',
     vibes: ['Foodie', 'Homebody', 'Gamer'],
@@ -63,6 +70,7 @@ export const PROFILES: Profile[] = [
     id: 'p5',
     name: 'Sloane',
     age: 26,
+    gender: 'female',
     location: 'Tulsa Arts District · 2 mi',
     bio: 'Synth player in a band you have not heard of (yet) — catch us in the Arts District. Sunset chaser on Riverside.',
     vibes: ['Artist', 'Night owl', 'Traveler'],
@@ -74,6 +82,7 @@ export const PROFILES: Profile[] = [
     id: 'p6',
     name: 'Hana',
     age: 24,
+    gender: 'female',
     location: 'Pearl District · 4 mi',
     bio: 'Ceramicist with cold hands and warm opinions. Tea over coffee — fight me on a Pearl District patio.',
     vibes: ['Artist', 'Homebody', 'Bookworm'],
@@ -85,6 +94,7 @@ export const PROFILES: Profile[] = [
     id: 'p7',
     name: 'Hannah',
     age: 28,
+    gender: 'female',
     location: 'Midtown · 3 mi',
     bio: 'Foggy-morning hiker, documentary hoarder. Dog comes to Woodward Park dates — non-negotiable.',
     vibes: ['Adventurer', 'Early bird', 'Bookworm'],
@@ -96,12 +106,61 @@ export const PROFILES: Profile[] = [
     id: 'p8',
     name: 'Ivy',
     age: 27,
+    gender: 'female',
     location: 'Cherry Street · 2 mi',
     bio: 'Trivia-night captain at a Cherry Street pub, looking for a co-captain. Undefeated, mostly.',
     vibes: ['Gamer', 'Night owl', 'Foodie'],
     photo: f47,
     gradient: ['#fbbf24', '#ff6b5e'],
     prompt: { question: 'My winning category', answer: 'Oklahoma history and 90s one-hit wonders.' },
+  },
+  {
+    id: 'p9',
+    name: 'Jordan',
+    age: 31,
+    gender: 'male',
+    location: 'Blue Dome · 1 mi',
+    bio: 'Architect by day, jazz pianist by night. Convinced the Blue Dome District needs a rooftop venue — someone hire me.',
+    vibes: ['Artist', 'Night owl', 'Traveler'],
+    photo: m3,
+    gradient: ['#6366f1', '#22d3ee'],
+    prompt: { question: 'I will cook for you if', answer: 'you bring the record and pretend my soufflé was intentional.' },
+  },
+  {
+    id: 'p10',
+    name: 'Eli',
+    age: 26,
+    gender: 'male',
+    location: 'Brady Arts · 3 mi',
+    bio: 'Documentary filmmaker with a soft spot for Oklahoma weather. Currently editing a short about the Gathering Place at sunrise.',
+    vibes: ['Artist', 'Adventurer', 'Early bird'],
+    photo: m7,
+    gradient: ['#f59e0b', '#34d399'],
+    prompt: { question: 'You will like me if', answer: 'you think "golden hour" is worth a 5am alarm.' },
+  },
+  {
+    id: 'p11',
+    name: 'Nate',
+    age: 28,
+    gender: 'male',
+    location: 'Riverside · 4 mi',
+    bio: 'Rock climber who found a gym in Tulsa and never left. Will definitely talk your ear off about crash pad brands.',
+    vibes: ['Adventurer', 'Gym rat', 'Gamer'],
+    photo: m12,
+    gradient: ['#10b981', '#5ed3ff'],
+    prompt: { question: 'My ideal Saturday', answer: 'six-hour climb, then a massive pizza at Elgin Park. No plans after.' },
+  },
+  {
+    id: 'p12',
+    name: 'Dev',
+    age: 29,
+    gender: 'male',
+    location: 'Maple Ridge · 2 mi',
+    bio: 'Software engineer who actually closes his laptop at 6pm. Weekend farmer\'s market regular with a dangerous jam habit.',
+    vibes: ['Foodie', 'Homebody', 'Bookworm'],
+    photo: m52,
+    gradient: ['#8b5cf6', '#f59e0b'],
+    prompt: { question: 'A fact that surprises people', answer: 'I have made seventeen batches of sourdough and only four were edible.' },
   },
 ]
 
@@ -110,6 +169,7 @@ export const ME: Profile = {
   id: 'me',
   name: 'You',
   age: 28,
+  gender: 'male',
   location: 'Tulsa, OK',
   bio: 'Just here to break the ice. Ask me anything — preferably in trivia form.',
   vibes: ['Foodie', 'Traveler', 'Gamer'],

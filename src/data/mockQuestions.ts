@@ -115,7 +115,7 @@ export const QUESTION_SEEDS: Seed[] = [
     correct: 'The Nile',
     wrong: ['The Amazon', 'The Yangtze', 'The Mississippi'],
   },
-  // --- second pass: rounds out each category to 5 questions ---
+  // --- second pass: rounds out each category to 7 questions ---
   {
     category: 'General Knowledge',
     prompt: 'What is the hardest natural substance on Earth?',
@@ -127,6 +127,18 @@ export const QUESTION_SEEDS: Seed[] = [
     prompt: 'Which planet spins on its side?',
     correct: 'Uranus',
     wrong: ['Saturn', 'Neptune', 'Venus'],
+  },
+  {
+    category: 'General Knowledge',
+    prompt: 'How many sides does a heptagon have?',
+    correct: 'Seven',
+    wrong: ['Six', 'Eight', 'Nine'],
+  },
+  {
+    category: 'General Knowledge',
+    prompt: 'What color is a polar bear\'s skin under its white fur?',
+    correct: 'Black',
+    wrong: ['Pink', 'White', 'Grey'],
   },
   {
     category: 'Film & TV',
@@ -141,6 +153,18 @@ export const QUESTION_SEEDS: Seed[] = [
     wrong: ['Doug', 'Russell', 'Kevin'],
   },
   {
+    category: 'Film & TV',
+    prompt: 'Which actor played Iron Man in the Marvel Cinematic Universe?',
+    correct: 'Robert Downey Jr.',
+    wrong: ['Chris Evans', 'Mark Ruffalo', 'Chris Hemsworth'],
+  },
+  {
+    category: 'Film & TV',
+    prompt: 'What TV show features the fictional paper company Dunder Mifflin?',
+    correct: 'The Office',
+    wrong: ['Parks and Recreation', '30 Rock', 'Arrested Development'],
+  },
+  {
     category: 'Music',
     prompt: 'Which band released the album "Dark Side of the Moon"?',
     correct: 'Pink Floyd',
@@ -151,6 +175,18 @@ export const QUESTION_SEEDS: Seed[] = [
     prompt: 'How many keys are black on a standard piano?',
     correct: '36',
     wrong: ['52', '24', '40'],
+  },
+  {
+    category: 'Music',
+    prompt: 'What is the name of Taylor Swift\'s debut album?',
+    correct: 'Taylor Swift',
+    wrong: ['Fearless', 'Speak Now', 'Red'],
+  },
+  {
+    category: 'Music',
+    prompt: 'Which band was Beyoncé in before going solo?',
+    correct: 'Destiny\'s Child',
+    wrong: ['TLC', 'En Vogue', 'SWV'],
   },
   {
     category: 'Food & Drink',
@@ -165,6 +201,18 @@ export const QUESTION_SEEDS: Seed[] = [
     wrong: ['Capsaicin', 'Piperine', 'Menthol'],
   },
   {
+    category: 'Food & Drink',
+    prompt: 'Which country is the largest producer of coffee in the world?',
+    correct: 'Brazil',
+    wrong: ['Colombia', 'Vietnam', 'Ethiopia'],
+  },
+  {
+    category: 'Food & Drink',
+    prompt: 'What pasta shape translates to "little worms" in Italian?',
+    correct: 'Vermicelli',
+    wrong: ['Spaghetti', 'Linguine', 'Capellini'],
+  },
+  {
     category: 'Science',
     prompt: 'What is the chemical symbol for gold?',
     correct: 'Au',
@@ -177,6 +225,18 @@ export const QUESTION_SEEDS: Seed[] = [
     wrong: ['201', '212', '198'],
   },
   {
+    category: 'Science',
+    prompt: 'What force keeps planets in orbit around the sun?',
+    correct: 'Gravity',
+    wrong: ['Magnetism', 'Centrifugal force', 'Dark energy'],
+  },
+  {
+    category: 'Science',
+    prompt: 'What is the speed of light in a vacuum (approx)?',
+    correct: '300,000 km/s',
+    wrong: ['150,000 km/s', '500,000 km/s', '3,000 km/s'],
+  },
+  {
     category: 'Geography',
     prompt: 'Which U.S. state is nicknamed the "Sooner State"?',
     correct: 'Oklahoma',
@@ -187,6 +247,18 @@ export const QUESTION_SEEDS: Seed[] = [
     prompt: 'What is the smallest country in the world by area?',
     correct: 'Vatican City',
     wrong: ['Monaco', 'San Marino', 'Liechtenstein'],
+  },
+  {
+    category: 'Geography',
+    prompt: 'On which continent is the Sahara Desert located?',
+    correct: 'Africa',
+    wrong: ['Asia', 'South America', 'Australia'],
+  },
+  {
+    category: 'Geography',
+    prompt: 'What is the tallest mountain in the world?',
+    correct: 'Mount Everest',
+    wrong: ['K2', 'Kangchenjunga', 'Lhotse'],
   },
 ]
 

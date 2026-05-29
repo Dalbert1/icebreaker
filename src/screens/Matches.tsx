@@ -39,7 +39,7 @@ export function Matches() {
             return (
               <Link
                 key={m.profileId}
-                to={`/game/${m.profileId}`}
+                to={`/chat/${m.profileId}`}
                 className="glass flex items-center gap-4 p-3 transition-transform active:scale-[0.99]"
                 style={{ borderRadius: '20px' }}
               >
@@ -64,7 +64,7 @@ export function Matches() {
                   <ThawBar thaw={m.thaw} showLabel={false} />
                 </div>
                 <span className="bg-thaw shrink-0 rounded-full px-3 py-2 text-xs font-semibold text-abyss">
-                  {games.length ? 'Play' : 'Break ice'}
+                  {games.length ? 'Chat' : 'Break ice'}
                 </span>
               </Link>
             )

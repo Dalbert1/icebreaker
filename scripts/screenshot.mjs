@@ -38,61 +38,74 @@ page.on('pageerror', (e) => errors.push(String(e)))
 try {
   console.log(`Capturing icebreaker @ ${BASE_URL}`)
 
-  // Start fresh each run so the flow is deterministic. Navigate straight to a
-  // real route (the bare base path without a trailing slash 404s on vite
-  // preview; GitHub Pages redirects it, but we avoid it here).
+  // Start fresh each run so the flow is deterministic.
   await page.goto(`${BASE_URL}/discover`, { waitUntil: 'networkidle' })
   await page.evaluate(() => localStorage.clear())
+
+  // Onboarding — shown on first launch before any preference is set.
   await page.goto(`${BASE_URL}/discover`, { waitUntil: 'networkidle' })
-  await shot(page, '01-discover')
+  await shot(page, '01-onboarding')
+
+  // Pick "Everyone" so the full discover pool is visible.
+  await page.getByRole('button', { name: /Everyone/ }).click()
+  await page.waitForURL(`${BASE_URL}/discover`, { timeout: 5000 })
+  await shot(page, '02-discover')
 
   // Like the top card -> match modal.
   await page.getByRole('button', { name: 'Thaw' }).last().click()
-  await shot(page, '02-match')
+  await shot(page, '03-match')
 
-  // Break the ice -> category picker.
+  // Break the ice -> chat -> Play Icebreaker -> category picker.
   await page.getByRole('button', { name: 'Break the ice' }).click()
-  await shot(page, '03-game-category')
+  await page.waitForTimeout(400)
+  // Now on chat screen — click Play Icebreaker
+  await page.getByRole('link', { name: /Play Icebreaker/ }).click()
+  await shot(page, '04-game-category')
 
-  // Pick a category -> first question.
+  // Pick an icebreaker (category) -> first question.
   await page.getByRole('button', { name: /General Knowledge/ }).click()
-  await shot(page, '04-game-question')
+  await shot(page, '05-game-question')
 
   // Answer the first question -> feedback state.
-  await page.locator('main button').nth(1).click() // nth(0) is the Back button
+  await page.locator('main button').nth(1).click()
   await page.waitForTimeout(350)
-  await shot(page, '05-game-feedback')
+  await shot(page, '06-game-feedback')
 
-  // Play through the rest of the round to reach results.
-  for (let i = 0; i < 8; i++) {
+  // Play through the remaining questions to reach "Want to chat?" screen.
+  for (let i = 0; i < 20; i++) {
     const advance = page.getByRole('button', { name: /Next question|See results/ })
     if (!(await advance.count())) break
     const last = /See results/.test((await advance.textContent()) ?? '')
     await advance.click()
     await page.waitForTimeout(300)
     if (last) break
-    await page.locator('main button').nth(1).click() // answer next question
+    await page.locator('main button').nth(1).click()
     await page.waitForTimeout(300)
   }
-  await shot(page, '06-game-results')
+  await shot(page, '07-want-to-chat')
 
-  // Matches list (now shows a played round + advanced thaw).
+  // Say "Yes, please." -> chat screen.
+  await page.getByRole('button', { name: 'Yes, please.' }).click()
+  await page.waitForTimeout(400)
+  await shot(page, '08-chat')
+
+  // Matches list.
   await page.goto(`${BASE_URL}/matches`, { waitUntil: 'networkidle' })
-  await shot(page, '07-matches')
+  await shot(page, '09-matches')
 
   // Profile.
   await page.goto(`${BASE_URL}/profile`, { waitUntil: 'networkidle' })
-  await shot(page, '08-profile')
+  await shot(page, '10-profile')
 
-  // Short-phone stress case (iPhone SE) — initial viewport must not overflow.
+  // Short-phone stress case (iPhone SE).
   await page.setViewportSize({ width: 375, height: 667 })
   await page.goto(`${BASE_URL}/discover`, { waitUntil: 'networkidle' })
-  await shot(page, '09-se-discover')
+  await shot(page, '11-se-discover')
 
-  // Desktop framing too.
+  // Desktop framing.
   await page.setViewportSize({ width: 1280, height: 900 })
   await page.goto(`${BASE_URL}/discover`, { waitUntil: 'networkidle' })
-  await shot(page, '10-desktop')
+  await shot(page, '12-desktop')
 
   if (errors.length) {
     console.log(`\n⚠ ${errors.length} console error(s):`)
