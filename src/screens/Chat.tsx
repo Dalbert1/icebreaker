@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useStore } from '../lib/store'
 import { PROFILES } from '../data/profiles'
 import { conversationStartersFor } from '../lib/conversationStarters'
+import { isThawRevealed, revealedName } from '../lib/thaw'
 import { GradientPortrait } from '../components/GradientPortrait'
 import { ThawBar, VibePill } from '../components/ui'
 
@@ -56,8 +57,8 @@ export function Chat() {
     )
   }
 
-  const revealed = match.thaw >= 0.5
-  const displayName = revealed ? profile.name : `${profile.name.charAt(0)}······`
+  const revealed = isThawRevealed(match.thaw)
+  const displayName = revealedName(profile.name, match.thaw)
 
   if (!hasCompletedGame) {
     return (

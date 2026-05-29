@@ -15,7 +15,7 @@ The Phase 2+ backend/auth/game-state plan lives in
 **Goal:** a runnable, well-structured repo.
 
 - Vite + React + TS + Tailwind v4 scaffold
-- Theme system ("polar dusk": glacial cold → ember warmth)
+- Theme system ("frozen palace": glacial cyan → aurora violet → warm glow)
 - Repo, agent guides (`CLAUDE.md`/`AGENTS.md`), Playwright verify loop
 - Architecture + roadmap docs
 

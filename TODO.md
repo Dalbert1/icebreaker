@@ -25,21 +25,19 @@ deliberately deferred until device testing is done.
       questions/category and added a per-game **rotating window**
       (`getQuestions(category, count, variant)`) so consecutive games for a match
       draw a fresh, non-overlapping round (wraps once the bank is exhausted).
-      _(this change)_
+- [x] **4. Centralize the thaw model.** New `src/lib/thaw.ts` owns the rate
+      (`THAW_PER_GAME`), thresholds (`REVEAL_THRESHOLD`, `PRE_REVEAL_CAP`) and
+      helpers (`thawForGames`, `liveThaw`, `crossesFullThaw`, `isThawRevealed`,
+      `revealedName`). Store/Game/Chat/Matches all route through it. _(this change)_
+- [x] **"Frozen palace" theme.** Retuned the palette toward an Elsa's-ice-palace
+      feel — deep blue-violet sky, aurora violet accent, snow + northern-lights
+      atmosphere, cyan→violet→warm thaw gradient. Also fixed a latent bug where
+      the `grain` utility's `position: relative` collapsed the fixed Atmosphere to
+      height 0, muting every backdrop glow. _(this change)_
 
 ---
 
 ## ⬜ Next up
-
-### 4. Centralize & make the thaw model tunable
-The thaw constants are scattered and duplicated:
-- `0.5` per game in `thawFor` (`store.tsx`)
-- the same `0.5` recomputed inline as `liveThaw` in `Game.tsx`
-- the `thaw >= 0.5` reveal threshold duplicated across `Chat.tsx`, `Matches.tsx`,
-  `Game.tsx`
-
-Extract to one helper/constant module (e.g. `src/lib/thaw.ts`) so the mechanic is
-consistent and easy to tune. Pairs naturally with item 1.
 
 ### 5. Unit tests for the store reducer + `thawFor` + scoring
 This is **not** the "blocking testing" we're avoiding (that's auth/sign-in). These

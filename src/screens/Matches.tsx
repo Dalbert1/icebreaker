@@ -3,6 +3,7 @@ import { useStore } from '../lib/store'
 import { PROFILES } from '../data/profiles'
 import { GradientPortrait } from '../components/GradientPortrait'
 import { ThawBar } from '../components/ui'
+import { isThawRevealed, revealedName } from '../lib/thaw'
 
 export function Matches() {
   const { state } = useStore()
@@ -52,7 +53,7 @@ export function Matches() {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-baseline justify-between gap-2">
                     <h3 className="truncate text-lg text-frost">
-                      {m.thaw >= 0.5 ? p.name : `${p.name.charAt(0)}······`}
+                      {revealedName(p.name, m.thaw)}
                       <span className="ml-1.5 text-sm font-light text-frost/60">{p.age}</span>
                     </h3>
                     <span className="shrink-0 text-[11px] text-frost/40">
@@ -60,7 +61,7 @@ export function Matches() {
                     </span>
                   </div>
                   <p className="mt-0.5 mb-2 truncate text-xs text-frost/55">
-                    {m.thaw >= 0.5 ? p.bio : 'Answer trivia together to reveal more…'}
+                    {isThawRevealed(m.thaw) ? p.bio : 'Answer trivia together to reveal more…'}
                   </p>
                   <ThawBar thaw={m.thaw} showLabel={false} />
                 </div>
