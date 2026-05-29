@@ -32,6 +32,27 @@ npm run lint     # eslint
 npm run shot     # Playwright visual walk -> writes .screens/*.png (server must be up)
 ```
 
+## Deploying to GitHub Pages
+
+`.github/workflows/deploy.yml` builds and publishes to Pages on every push to
+`main`. The site serves from a sub-path (`/icebreaker/`):
+
+- The workflow builds with `VITE_BASE=/icebreaker/`; `vite.config.ts` reads it.
+- `BrowserRouter` uses `basename = import.meta.env.BASE_URL` (see `main.tsx`).
+- It copies `dist/index.html` → `dist/404.html` so deep links / refresh resolve
+  through the SPA on Pages.
+
+To reproduce the production build locally (verify before relying on Pages):
+
+```powershell
+# PowerShell — DO NOT set VITE_BASE via the Bash tool on Windows: MSYS mangles
+# a leading-slash value like /icebreaker/ into a Windows path.
+$env:VITE_BASE='/icebreaker/'; npm run build; Copy-Item dist/index.html dist/404.html
+$env:VITE_BASE='/icebreaker/'; npm run preview      # serves http://localhost:4173/icebreaker/
+# then, in another shell:
+$env:BASE_URL='http://localhost:4173/icebreaker'; npm run shot
+```
+
 ## Working rules (IMPORTANT)
 
 1. **Verify visually with Playwright between iterations.** After any UI change,

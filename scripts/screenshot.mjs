@@ -38,8 +38,10 @@ page.on('pageerror', (e) => errors.push(String(e)))
 try {
   console.log(`Capturing icebreaker @ ${BASE_URL}`)
 
-  // Start fresh each run so the flow is deterministic.
-  await page.goto(BASE_URL, { waitUntil: 'networkidle' })
+  // Start fresh each run so the flow is deterministic. Navigate straight to a
+  // real route (the bare base path without a trailing slash 404s on vite
+  // preview; GitHub Pages redirects it, but we avoid it here).
+  await page.goto(`${BASE_URL}/discover`, { waitUntil: 'networkidle' })
   await page.evaluate(() => localStorage.clear())
   await page.goto(`${BASE_URL}/discover`, { waitUntil: 'networkidle' })
   await shot(page, '01-discover')

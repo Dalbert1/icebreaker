@@ -54,9 +54,19 @@ npm run shot
 ```
 
 This walks the core flow at a phone viewport + desktop, writes screenshots to
-`.screens/`, and **fails on any console error**. It's the project's visual
-verification loop (we are not deploying to GitHub Pages yet — see
-[`CLAUDE.md`](CLAUDE.md)).
+`.screens/`, and **fails on any console error**. It's the project's primary
+visual verification loop (see [`CLAUDE.md`](CLAUDE.md)).
+
+## Deploy (GitHub Pages)
+
+Pushing to `main` triggers `.github/workflows/deploy.yml`, which builds the
+static SPA (under base `/icebreaker/`) and publishes it to GitHub Pages. Once
+Pages is enabled (Settings → Pages → Source: GitHub Actions), the site is live
+at **https://dalbert1.github.io/icebreaker/**.
+
+To reproduce the production build locally, see the GitHub Pages section in
+[`CLAUDE.md`](CLAUDE.md) (note: set `VITE_BASE` via PowerShell, not the Git-Bash
+shell, on Windows).
 
 ## Scripts
 
