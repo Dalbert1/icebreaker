@@ -1,0 +1,7 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "embedded",
+  "dolt_database": "icebreaker",
+  "project_id": "2b13656d-7a42-4152-8453-87b10ce0e1dd"
+}
