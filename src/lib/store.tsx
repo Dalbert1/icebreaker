@@ -23,7 +23,7 @@ interface AuthState {
   error?: string
 }
 
-interface State {
+export interface State {
   /** Remaining profile ids in the discovery deck (top of stack = last item). */
   deck: string[]
   liked: string[]
@@ -39,7 +39,7 @@ interface State {
   auth: AuthState
 }
 
-type Action =
+export type Action =
   | { type: 'LIKE'; id: string }
   | { type: 'PASS'; id: string }
   | { type: 'UNMATCH'; id: string }
@@ -64,7 +64,8 @@ function deckForPreference(preference: GenderPreference, exclude: string[]): str
   return pool.map((p) => p.id).filter((id) => !exclude.includes(id))
 }
 
-function initialState(): State {
+// eslint-disable-next-line react-refresh/only-export-components
+export function initialState(): State {
   return {
     deck: [],
     liked: [],
@@ -100,7 +101,8 @@ function thawFor(matchId: string, games: GameSession[]): number {
   return thawForGames(played.length)
 }
 
-function reducer(state: State, action: Action): State {
+// eslint-disable-next-line react-refresh/only-export-components
+export function reducer(state: State, action: Action): State {
   switch (action.type) {
     case 'SET_PREFERENCE': {
       const deck = deckForPreference(action.preference, [
