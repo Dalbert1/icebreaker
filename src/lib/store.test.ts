@@ -27,6 +27,24 @@ function withMatch(profileId = 'p1'): State {
   }
 }
 
+describe('session state', () => {
+  it('starts in ready local mode when Supabase is not configured', () => {
+    expect(initialState().auth).toEqual({ status: 'ready', adapter: 'local' })
+  })
+
+  it('updates auth messages without changing the session state', () => {
+    const next = reducer(initialState(), {
+      type: 'SET_AUTH_MESSAGE',
+      error: 'No credentials',
+    })
+    expect(next.auth).toEqual({
+      status: 'ready',
+      adapter: 'local',
+      error: 'No credentials',
+    })
+  })
+})
+
 describe('LIKE', () => {
   it('always matches back (POC) and flags the pending match', () => {
     const next = reducer(initialState(), { type: 'LIKE', id: 'p1' })

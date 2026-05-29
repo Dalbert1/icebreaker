@@ -4,8 +4,10 @@ import {
   useEffect,
   useMemo,
   useReducer,
+  type Dispatch,
   type ReactNode,
 } from 'react'
+import type { User } from '@supabase/supabase-js'
 import type { GameSession, Match, Message, Question, TriviaCategory } from '../types'
 import { PROFILES } from '../data/profiles'
 import { questionProvider } from './questionProvider'
@@ -14,10 +16,11 @@ import { thawForGames } from './thaw'
 import { authRedirectTo, isSupabaseConfigured, supabase } from './supabase'
 
 export type GenderPreference = 'male' | 'female' | 'both'
-export type SessionStatus = 'mock' | 'checking' | 'signedOut' | 'signedIn'
+export type SessionStatus = 'checking' | 'signedOut' | 'needsProfile' | 'ready'
 
 interface AuthState {
   status: SessionStatus
+  adapter: 'local' | 'supabase'
   userId?: string
   email?: string
   message?: string
@@ -60,6 +63,139 @@ export type Action =
 
 const STORAGE_KEY = 'icebreaker.state.v2'
 
+interface StoreAdapter {
+  kind: AuthState['adapter']
+  initialAuth: AuthState
+  subscribeAuth: (dispatch: Dispatch<Action>) => () => void
+  signInWithEmail: (email: string, dispatch: Dispatch<Action>) => Promise<void>
+  signOut: (dispatch: Dispatch<Action>) => Promise<void>
+  syncOnboardingProfile: (
+    preference: GenderPreference,
+    userId: string | undefined,
+  ) => Promise<void>
+}
+
+const localAdapter: StoreAdapter = {
+  kind: 'local',
+  initialAuth: { status: 'ready', adapter: 'local' },
+  subscribeAuth: () => () => {},
+  signInWithEmail: async (_email, dispatch) => {
+    dispatch({
+      type: 'SET_AUTH_MESSAGE',
+      error: 'Supabase is not configured for this build.',
+    })
+  },
+  signOut: async () => {},
+  syncOnboardingProfile: async () => {},
+}
+
+async function authForSupabaseUser(user: User): Promise<AuthState> {
+  if (!supabase) return localAdapter.initialAuth
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('onboarding_completed_at')
+    .eq('id', user.id)
+    .maybeSingle()
+
+  if (error) {
+    return {
+      status: 'needsProfile',
+      adapter: 'supabase',
+      userId: user.id,
+      email: user.email ?? undefined,
+      error: error.message,
+    }
+  }
+
+  return {
+    status: data?.onboarding_completed_at ? 'ready' : 'needsProfile',
+    adapter: 'supabase',
+    userId: user.id,
+    email: user.email ?? undefined,
+  }
+}
+
+const supabaseAdapter: StoreAdapter = {
+  kind: 'supabase',
+  initialAuth: { status: 'checking', adapter: 'supabase' },
+  subscribeAuth: (dispatch) => {
+    if (!supabase) return () => {}
+
+    let active = true
+
+    supabase.auth.getSession().then(async ({ data }) => {
+      if (!active) return
+      const user = data.session?.user
+      dispatch({
+        type: 'SET_AUTH',
+        auth: user ? await authForSupabaseUser(user) : { status: 'signedOut', adapter: 'supabase' },
+      })
+    })
+
+    const { data } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT' || !session?.user) {
+        dispatch({ type: 'SET_AUTH', auth: { status: 'signedOut', adapter: 'supabase' } })
+        return
+      }
+      authForSupabaseUser(session.user).then((auth) => {
+        if (active) dispatch({ type: 'SET_AUTH', auth })
+      })
+    })
+
+    return () => {
+      active = false
+      data.subscription.unsubscribe()
+    }
+  },
+  signInWithEmail: async (email, dispatch) => {
+    if (!supabase) return localAdapter.signInWithEmail(email, dispatch)
+
+    dispatch({ type: 'SET_AUTH_MESSAGE', message: undefined, error: undefined })
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: authRedirectTo() },
+    })
+    if (error) {
+      dispatch({ type: 'SET_AUTH_MESSAGE', error: error.message })
+      return
+    }
+    dispatch({
+      type: 'SET_AUTH_MESSAGE',
+      message: 'Check your email for the icebreaker sign-in link.',
+    })
+  },
+  signOut: async (dispatch) => {
+    if (!supabase) return
+    const { error } = await supabase.auth.signOut()
+    if (error) dispatch({ type: 'SET_AUTH_MESSAGE', error: error.message })
+  },
+  syncOnboardingProfile: async (preference, userId) => {
+    if (!supabase || !userId) return
+    const now = new Date().toISOString()
+    const profile = {
+      id: userId,
+      display_name: 'You',
+      bio: 'Just here to break the ice. Ask me anything — preferably in trivia form.',
+      vibes: ['Foodie', 'Traveler', 'Gamer'],
+      location_label: 'Tulsa, OK',
+      onboarding_completed_at: now,
+      updated_at: now,
+    }
+    const { error: profileError } = await supabase.from('profiles').upsert(profile)
+    if (profileError) throw profileError
+
+    const { error: preferenceError } = await supabase.from('profile_preferences').upsert({
+      profile_id: userId,
+      interested_in: preference,
+      updated_at: now,
+    })
+    if (preferenceError) throw preferenceError
+  },
+}
+
+const activeAdapter = supabase ? supabaseAdapter : localAdapter
+
 function deckForPreference(preference: GenderPreference, exclude: string[]): string[] {
   const pool =
     preference === 'both'
@@ -79,7 +215,7 @@ export function initialState(): State {
     games: [],
     messages: [],
     genderPreference: undefined,
-    auth: { status: isSupabaseConfigured ? 'checking' : 'mock' },
+    auth: activeAdapter.initialAuth,
   }
 }
 
@@ -264,40 +400,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(reducer, undefined, load)
 
   useEffect(() => {
-    if (!supabase) return
-
-    let active = true
-
-    supabase.auth.getSession().then(({ data }) => {
-      if (!active) return
-      const user = data.session?.user
-      dispatch({
-        type: 'SET_AUTH',
-        auth: user
-          ? { status: 'signedIn', userId: user.id, email: user.email ?? undefined }
-          : { status: 'signedOut' },
-      })
-    })
-
-    const { data } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_OUT' || !session?.user) {
-        dispatch({ type: 'SET_AUTH', auth: { status: 'signedOut' } })
-        return
-      }
-      dispatch({
-        type: 'SET_AUTH',
-        auth: {
-          status: 'signedIn',
-          userId: session.user.id,
-          email: session.user.email ?? undefined,
-        },
-      })
-    })
-
-    return () => {
-      active = false
-      data.subscription.unsubscribe()
-    }
+    return activeAdapter.subscribeAuth(dispatch)
   }, [])
 
   useEffect(() => {
@@ -319,60 +422,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     }
   }, [state])
 
-  async function syncOnboardingProfile(preference: GenderPreference, userId?: string) {
-    if (!supabase || !userId) return
-    const now = new Date().toISOString()
-    const profile = {
-      id: userId,
-      display_name: 'You',
-      bio: 'Just here to break the ice. Ask me anything — preferably in trivia form.',
-      vibes: ['Foodie', 'Traveler', 'Gamer'],
-      location_label: 'Tulsa, OK',
-      onboarding_completed_at: now,
-      updated_at: now,
-    }
-    const { error: profileError } = await supabase.from('profiles').upsert(profile)
-    if (profileError) throw profileError
-
-    const { error: preferenceError } = await supabase.from('profile_preferences').upsert({
-      profile_id: userId,
-      interested_in: preference,
-      updated_at: now,
-    })
-    if (preferenceError) throw preferenceError
-  }
-
   const store = useMemo<Store>(
     () => ({
       state,
       isSupabaseConfigured,
-      signInWithEmail: async (email) => {
-        if (!supabase) {
-          dispatch({
-            type: 'SET_AUTH_MESSAGE',
-            error: 'Supabase is not configured for this build.',
-          })
-          return
-        }
-        dispatch({ type: 'SET_AUTH_MESSAGE', message: undefined, error: undefined })
-        const { error } = await supabase.auth.signInWithOtp({
-          email,
-          options: { emailRedirectTo: authRedirectTo() },
-        })
-        if (error) {
-          dispatch({ type: 'SET_AUTH_MESSAGE', error: error.message })
-          return
-        }
-        dispatch({
-          type: 'SET_AUTH_MESSAGE',
-          message: 'Check your email for the icebreaker sign-in link.',
-        })
-      },
-      signOut: async () => {
-        if (!supabase) return
-        const { error } = await supabase.auth.signOut()
-        if (error) dispatch({ type: 'SET_AUTH_MESSAGE', error: error.message })
-      },
+      signInWithEmail: (email) => activeAdapter.signInWithEmail(email, dispatch),
+      signOut: () => activeAdapter.signOut(dispatch),
       like: (id) => dispatch({ type: 'LIKE', id }),
       pass: (id) => dispatch({ type: 'PASS', id }),
       unmatch: (id) => dispatch({ type: 'UNMATCH', id }),
@@ -403,7 +458,19 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       completeGame: (gameId) => dispatch({ type: 'COMPLETE_GAME', gameId }),
       setPreference: (preference) => {
         dispatch({ type: 'SET_PREFERENCE', preference })
-        syncOnboardingProfile(preference, state.auth.userId).catch((error: unknown) => {
+        activeAdapter.syncOnboardingProfile(preference, state.auth.userId).then(() => {
+          if (state.auth.adapter === 'supabase' && state.auth.userId) {
+            dispatch({
+              type: 'SET_AUTH',
+              auth: {
+                ...state.auth,
+                status: 'ready',
+                message: undefined,
+                error: undefined,
+              },
+            })
+          }
+        }).catch((error: unknown) => {
           dispatch({
             type: 'SET_AUTH_MESSAGE',
             error: error instanceof Error ? error.message : 'Could not sync profile.',

@@ -50,11 +50,13 @@ export function Profile() {
       {isSupabaseConfigured && (
         <Glass className="mt-4 p-4">
           <p className="text-[11px] uppercase tracking-wider text-amber/80">Account</p>
-          {state.auth.status === 'signedIn' ? (
+          {state.auth.userId ? (
             <div className="mt-2 flex items-center justify-between gap-3">
               <div className="min-w-0">
                 <p className="truncate text-sm text-frost/90">{state.auth.email}</p>
-                <p className="text-xs text-frost/45">Synced with Supabase</p>
+                <p className="text-xs text-frost/45">
+                  {state.auth.status === 'needsProfile' ? 'Profile setup pending' : 'Synced with Supabase'}
+                </p>
               </div>
               <button
                 onClick={signOut}
