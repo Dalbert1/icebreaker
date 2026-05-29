@@ -34,16 +34,15 @@ deliberately deferred until device testing is done.
       atmosphere, cyan→violet→warm thaw gradient. Also fixed a latent bug where
       the `grain` utility's `position: relative` collapsed the fixed Atmosphere to
       height 0, muting every backdrop glow. _(this change)_
+- [x] **5. Unit tests for the store reducer + thaw + scoring.** Added Vitest
+      (`npm test`). 38 pure-function tests cover `lib/thaw.ts` (rate, thresholds,
+      live-thaw cap, reveal), the store `reducer` (match/like/pass/answer/timeout/
+      complete-thaw/unmatch/reset), and scoring. Extracted the inline results-screen
+      math into `lib/score.ts` (`scoreGame`, `syncLevel`) so it's testable. _(this change)_
 
 ---
 
 ## ⬜ Next up
-
-### 5. Unit tests for the store reducer + `thawFor` + scoring
-This is **not** the "blocking testing" we're avoiding (that's auth/sign-in). These
-are fast pure-function tests (Vitest) that complement Playwright and guard the
-thaw/score/match-derivation logic as items 1–4 churn it. Roadmap cross-cutting
-already calls for this.
 
 ### 6. Personal icebreaker / "Questions about me"
 `docs/PERSONAL_ICEBREAKER.md` is already written and the mock profiles carry the

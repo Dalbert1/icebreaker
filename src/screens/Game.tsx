@@ -9,6 +9,7 @@ import { GradientPortrait } from '../components/GradientPortrait'
 import { ThawReveal } from '../components/ThawReveal'
 import { ThawBar } from '../components/ui'
 import { crossesFullThaw, liveThaw as computeLiveThaw, revealedName } from '../lib/thaw'
+import { scoreGame, syncLevel } from '../lib/score'
 
 type Phase = 'category' | 'playing' | 'wantchat'
 const QUESTION_SECONDS = 15
@@ -339,12 +340,7 @@ function WantToChat({
   onReplay: () => void
   onUnmatch: () => void
 }) {
-  const stats = useMemo(() => {
-    const yours = game.userAnswers.filter((a, i) => a === game.questions[i].correctIndex).length
-    const theirs = game.matchAnswers.filter((a, i) => a === game.questions[i].correctIndex).length
-    const agreed = game.userAnswers.filter((a, i) => a === game.matchAnswers[i]).length
-    return { yours, theirs, agreed, total: game.questions.length }
-  }, [game])
+  const stats = useMemo(() => scoreGame(game), [game])
 
   return (
     <div className="flex flex-1 flex-col items-center justify-center gap-6 px-2 py-4 text-center">
@@ -384,9 +380,9 @@ function WantToChat({
         transition={{ delay: 0.3 }}
         className="max-w-xs text-sm text-frost/65"
       >
-        {stats.agreed >= stats.total - 1
+        {syncLevel(stats) === 'in-sync'
           ? `You and ${profile.name} are dangerously in sync. 🔥`
-          : stats.agreed >= stats.total / 2
+          : syncLevel(stats) === 'overlap'
             ? `Solid overlap with ${profile.name}. The conversation writes itself.`
             : `Opposites attract — plenty to talk about with ${profile.name}.`}
       </motion.p>
