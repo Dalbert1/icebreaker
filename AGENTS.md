@@ -91,6 +91,11 @@ $env:BASE_URL='http://localhost:4173/icebreaker'; npm run shot
    follows the same rule: env vars enable the real client, but the local mock
    flow must continue to work without credentials.
 
+5. **Hold off on anything blocking in terms of testing.** For example -
+   We're currently holding off on things like wiring up session state, sign-up/authentication, etc. until
+   we get the baseline application in place/tested and reviewed with playwright. What we're looking to avoid is
+   having to sign-up/sign-in, etc. every time we deploy or reboot the application just to test the UI.
+
 ## Architecture seams to respect
 
 - **Trivia source** — everything goes through `QuestionProvider` in
