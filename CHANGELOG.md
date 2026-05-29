@@ -15,6 +15,9 @@ and auth. See [`docs/ROADMAP.md`](docs/ROADMAP.md).
 - Backend planning doc for Phase 2+ auth/session state, profile lifecycle,
   server-authoritative icebreaker games, 15-second answer deadlines, cumulative
   match scoreboards, RLS principles, and future product ideas.
+- Supabase Phase 2 foundation: optional `@supabase/supabase-js` client,
+  `.env.example`, email magic-link sign-in/sign-out, session restoration,
+  onboarding profile/preference upsert, setup docs, and starter SQL/RLS schema.
 
 ## [0.1.0] — 2026-05-28
 

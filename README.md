@@ -31,8 +31,8 @@ Goals, in order:
 
 1. **Web first, mobile-first.** Validate the experience as a responsive web app
    that feels right on a phone. A native app is a deliberate *later* phase.
-2. **Prove the core loop before any backend.** The whole current build runs on
-   mock data in the browser so the feel can be tested on real devices with zero
+2. **Prove the core loop with mocks first.** The app still runs on mock data in
+   the browser by default so the feel can be tested on real devices with zero
    infrastructure.
 3. **Keep the seams clean** so swapping mock data for a real backend (Supabase)
    and a real trivia source is a contained change, not a rewrite.
@@ -48,7 +48,7 @@ For the full design and the phase-by-phase plan, see
    buttons). Right = *Thaw* (like), left = *Frost* (pass).
 2. **Match** — a like surfaces the "the ice is cracking" celebration.
    *(POC simplification: likes always match back so the loop is reachable.)*
-3. **Break the ice** — pick a trivia category and play 5 questions. Each answer
+3. **Break the ice** — pick a trivia category and play 7 questions. Each answer
    thaws your match's frosted photo and advances the thaw meter. You see which
    answer they picked too.
 4. **Results** — your score, theirs, and how *in sync* you were. Matches keep
@@ -56,15 +56,18 @@ For the full design and the phase-by-phase plan, see
 
 ## Status
 
-**Phase 1 — static, mock-data POC: complete and deployed.** No backend, no
-accounts yet. Profiles are Tulsa, OK locals with real (bundled) photos. Next up
-is Phase 2 (Supabase backend + auth) — see the roadmap.
+**Phase 2 has started.** Phase 1's static POC is complete and deployed; the app
+now has an optional Supabase auth/profile foundation while swipes, games, chat,
+and scoring still use local mock data. Profiles are Tulsa, OK locals with real
+(bundled) photos. See the roadmap and
+[`docs/SUPABASE_SETUP.md`](docs/SUPABASE_SETUP.md).
 
 ## Tech stack
 
 React 19 · TypeScript · Vite · Tailwind CSS v4 · Motion (Framer Motion) ·
-React Router. Eventual backend: **Supabase** (a hosted BaaS the static SPA calls
-directly, so the app keeps working on static hosts like GitHub Pages).
+React Router · Supabase. Backend direction: **Supabase** (a hosted BaaS the
+static SPA calls directly, so the app keeps working on static hosts like GitHub
+Pages).
 
 ## Run it locally
 
@@ -74,6 +77,13 @@ npm run dev
 ```
 
 Open <http://localhost:5173>.
+
+### Supabase auth/profile sync
+
+The app runs without credentials. To enable Supabase Auth and onboarding profile
+sync, copy `.env.example` to `.env.local`, fill in the project URL and anon key,
+and run [`supabase/schema.sql`](supabase/schema.sql) in your Supabase SQL
+editor. Details are in [`docs/SUPABASE_SETUP.md`](docs/SUPABASE_SETUP.md).
 
 ### View it on your phone (same Wi-Fi / LAN)
 

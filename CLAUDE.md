@@ -13,7 +13,9 @@ with matches by playing trivia together. Mobile-first React web app; a native
 mobile app is a later phase, not now. See `docs/ROADMAP.md` for the phased plan
 and `docs/ARCHITECTURE.md` for system design.
 
-Current phase: **Phase 1 — static, mock-data POC.** No backend, no auth.
+Current phase: **Phase 2 — Supabase-backed auth/profile foundation.** The app
+still runs as a mock-data POC by default; Supabase turns on only when
+`VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are present.
 
 ## Stack
 
@@ -21,7 +23,9 @@ Current phase: **Phase 1 — static, mock-data POC.** No backend, no auth.
 - Tailwind CSS v4 (`@tailwindcss/vite`, theme in `src/index.css` via `@theme`)
 - `motion` (Framer Motion) for swipe/gesture + transitions
 - `react-router-dom` for routing
-- State: a localStorage-backed reducer in `src/lib/store.tsx` (no server yet)
+- `@supabase/supabase-js` for Phase 2 auth/profile persistence
+- State: a localStorage-backed reducer in `src/lib/store.tsx`, with optional
+  Supabase auth/profile sync when configured
 
 ## Commands
 
@@ -31,6 +35,16 @@ npm run build    # tsc typecheck + production build
 npm run lint     # eslint
 npm run shot     # Playwright visual walk -> writes .screens/*.png (server must be up)
 ```
+
+Supabase setup:
+
+```bash
+cp .env.example .env.local
+# fill VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY
+```
+
+Run `supabase/schema.sql` in the Supabase SQL editor for the starter schema and
+RLS policies. See `docs/SUPABASE_SETUP.md`.
 
 ## Deploying to GitHub Pages
 
@@ -66,19 +80,16 @@ $env:BASE_URL='http://localhost:4173/icebreaker'; npm run shot
 
 2. **Keep `CLAUDE.md` and `AGENTS.md` in sync** (see banner above).
 
-3. **Git workflow — push to branch, not always to main.**
-   - **Claude Code** works directly on `main` and may push to `main`.
-   - **Codex / other agents** work on feature branches and must never push
-     directly to `main`. Always push to the current branch and open a PR if one
-     doesn't exist yet (`gh pr create`). Do not merge the PR — leave that for
-     the human or Claude Code.
-   - Rule of thumb: check `git branch --show-current`. If it is `main`, push
-     normally. If it is any other branch, push to that branch and open a PR.
+3. **Git workflow.** The human may ask an agent to push directly to `main`.
+   Otherwise, prefer feature branches for parallel work. Rule of thumb: check
+   `git branch --show-current`; push to the branch the human asked you to use.
 
 4. **Mock over keys.** While validating the POC, never block on credentials or
    external APIs. If something needs an API key or a live service, stub it with
    mock data behind an interface and leave a `// TODO` noting the real wiring.
-   Trivia already follows this: see the `QuestionProvider` seam below.
+   Trivia already follows this: see the `QuestionProvider` seam below. Supabase
+   follows the same rule: env vars enable the real client, but the local mock
+   flow must continue to work without credentials.
 
 ## Architecture seams to respect
 
@@ -88,8 +99,12 @@ $env:BASE_URL='http://localhost:4173/icebreaker'; npm run shot
   behind the same interface for later; swap the exported `questionProvider` to
   change sources. UI never knows the source.
 - **App state** — all mutations go through the `useStore()` actions in
-  `src/lib/store.tsx`. When the backend phase lands, this is the layer that gets
-  swapped for Supabase calls; keep components talking only to the store.
+  `src/lib/store.tsx`. Supabase auth/profile sync is wired behind this layer;
+  keep components talking only to the store.
+- **Supabase** — client bootstrapping lives in `src/lib/supabase.ts`, generated/
+  hand-maintained public schema types live in `src/lib/supabaseTypes.ts`, setup
+  instructions live in `docs/SUPABASE_SETUP.md`, and the starter SQL lives in
+  `supabase/schema.sql`.
 - **Domain types** — `src/types.ts` is framework-agnostic on purpose so it can
   move into a shared package for the mobile app later.
 
@@ -109,10 +124,12 @@ src/
                 MatchModal, BottomNav, ui (Wordmark/VibePill/ThawBar/Glass)
   screens/      Onboarding, Discover, Matches, Chat, Game, Profile
   lib/          store.tsx (state), questionProvider.ts (trivia seam)
+                supabase.ts, supabaseTypes.ts
   data/         profiles.ts (mock pool), mockQuestions.ts (mock bank)
   types.ts      domain types
 scripts/        screenshot.mjs (Playwright verify), inspect.mjs (debug helper)
-docs/           ARCHITECTURE.md, ROADMAP.md
+docs/           ARCHITECTURE.md, ROADMAP.md, SUPABASE_SETUP.md
+supabase/       schema.sql
 IDEAS.md        informal feature ideas scratchpad
 ```
 

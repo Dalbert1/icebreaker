@@ -4,7 +4,7 @@ import { GradientPortrait } from '../components/GradientPortrait'
 import { VibePill, Glass } from '../components/ui'
 
 export function Profile() {
-  const { state, reset } = useStore()
+  const { state, isSupabaseConfigured, reset, signOut } = useStore()
   const roundsPlayed = state.games.filter((g) => g.completedAt).length
 
   return (
@@ -46,6 +46,31 @@ export function Profile() {
           ))}
         </div>
       </div>
+
+      {isSupabaseConfigured && (
+        <Glass className="mt-4 p-4">
+          <p className="text-[11px] uppercase tracking-wider text-amber/80">Account</p>
+          {state.auth.status === 'signedIn' ? (
+            <div className="mt-2 flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="truncate text-sm text-frost/90">{state.auth.email}</p>
+                <p className="text-xs text-frost/45">Synced with Supabase</p>
+              </div>
+              <button
+                onClick={signOut}
+                className="shrink-0 rounded-full border border-frost/12 px-3 py-1.5 text-xs text-frost/60 hover:border-ember/40 hover:text-ember"
+              >
+                Sign out
+              </button>
+            </div>
+          ) : (
+            <p className="mt-2 text-sm text-frost/55">
+              Sign in from onboarding to sync this profile.
+            </p>
+          )}
+          {state.auth.error && <p className="mt-2 text-xs text-ember">{state.auth.error}</p>}
+        </Glass>
+      )}
 
       <div className="mt-auto pt-6">
         <button

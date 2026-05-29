@@ -34,6 +34,8 @@ jobs:
         run: npm run build
         env:
           VITE_BASE: /icebreaker/
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
       - name: SPA fallback (deep links / refresh)
         run: cp dist/index.html dist/404.html
       - uses: actions/configure-pages@v5

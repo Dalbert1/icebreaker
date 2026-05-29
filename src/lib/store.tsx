@@ -9,8 +9,18 @@ import {
 import type { GameSession, Match, Question, TriviaCategory } from '../types'
 import { PROFILES } from '../data/profiles'
 import { questionProvider } from './questionProvider'
+import { authRedirectTo, isSupabaseConfigured, supabase } from './supabase'
 
 export type GenderPreference = 'male' | 'female' | 'both'
+export type SessionStatus = 'mock' | 'checking' | 'signedOut' | 'signedIn'
+
+interface AuthState {
+  status: SessionStatus
+  userId?: string
+  email?: string
+  message?: string
+  error?: string
+}
 
 interface State {
   /** Remaining profile ids in the discovery deck (top of stack = last item). */
@@ -23,6 +33,7 @@ interface State {
   pendingMatchId?: string
   /** Undefined means onboarding not completed yet. */
   genderPreference?: GenderPreference
+  auth: AuthState
 }
 
 type Action =
@@ -33,6 +44,8 @@ type Action =
   | { type: 'ANSWER'; gameId: string; qIndex: number; optIndex: number }
   | { type: 'COMPLETE_GAME'; gameId: string }
   | { type: 'SET_PREFERENCE'; preference: GenderPreference }
+  | { type: 'SET_AUTH'; auth: AuthState }
+  | { type: 'SET_AUTH_MESSAGE'; message?: string; error?: string }
   | { type: 'RESET' }
 
 const STORAGE_KEY = 'icebreaker.state.v2'
@@ -53,13 +66,17 @@ function initialState(): State {
     matches: [],
     games: [],
     genderPreference: undefined,
+    auth: { status: isSupabaseConfigured ? 'checking' : 'mock' },
   }
 }
 
 function load(): State {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
-    if (raw) return { ...initialState(), ...JSON.parse(raw) }
+    if (raw) {
+      const parsed = JSON.parse(raw) as Partial<State>
+      return { ...initialState(), ...parsed, auth: initialState().auth }
+    }
   } catch {
     /* ignore corrupt state */
   }
@@ -86,6 +103,13 @@ function reducer(state: State, action: Action): State {
       ])
       return { ...state, genderPreference: action.preference, deck }
     }
+    case 'SET_AUTH':
+      return { ...state, auth: action.auth }
+    case 'SET_AUTH_MESSAGE':
+      return {
+        ...state,
+        auth: { ...state.auth, message: action.message, error: action.error },
+      }
     case 'LIKE': {
       const deck = state.deck.filter((id) => id !== action.id)
       // POC matchmaking: a like always matches back so the trivia loop is
@@ -141,6 +165,9 @@ function reducer(state: State, action: Action): State {
 
 interface Store {
   state: State
+  isSupabaseConfigured: boolean
+  signInWithEmail: (email: string) => Promise<void>
+  signOut: () => Promise<void>
   like: (id: string) => void
   pass: (id: string) => void
   dismissMatch: () => void
@@ -176,23 +203,128 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(reducer, undefined, load)
 
   useEffect(() => {
+    if (!supabase) return
+
+    let active = true
+
+    supabase.auth.getSession().then(({ data }) => {
+      if (!active) return
+      const user = data.session?.user
+      dispatch({
+        type: 'SET_AUTH',
+        auth: user
+          ? { status: 'signedIn', userId: user.id, email: user.email ?? undefined }
+          : { status: 'signedOut' },
+      })
+    })
+
+    const { data } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT' || !session?.user) {
+        dispatch({ type: 'SET_AUTH', auth: { status: 'signedOut' } })
+        return
+      }
+      dispatch({
+        type: 'SET_AUTH',
+        auth: {
+          status: 'signedIn',
+          userId: session.user.id,
+          email: session.user.email ?? undefined,
+        },
+      })
+    })
+
+    return () => {
+      active = false
+      data.subscription.unsubscribe()
+    }
+  }, [])
+
+  useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
+      const persistedState = {
+        deck: state.deck,
+        liked: state.liked,
+        passed: state.passed,
+        matches: state.matches,
+        games: state.games,
+        pendingMatchId: state.pendingMatchId,
+        genderPreference: state.genderPreference,
+      }
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(persistedState))
     } catch {
       /* ignore quota errors */
     }
   }, [state])
 
+  async function syncOnboardingProfile(preference: GenderPreference, userId?: string) {
+    if (!supabase || !userId) return
+    const now = new Date().toISOString()
+    const profile = {
+      id: userId,
+      display_name: 'You',
+      bio: 'Just here to break the ice. Ask me anything — preferably in trivia form.',
+      vibes: ['Foodie', 'Traveler', 'Gamer'],
+      location_label: 'Tulsa, OK',
+      onboarding_completed_at: now,
+      updated_at: now,
+    }
+    const { error: profileError } = await supabase.from('profiles').upsert(profile)
+    if (profileError) throw profileError
+
+    const { error: preferenceError } = await supabase.from('profile_preferences').upsert({
+      profile_id: userId,
+      interested_in: preference,
+      updated_at: now,
+    })
+    if (preferenceError) throw preferenceError
+  }
+
   const store = useMemo<Store>(
     () => ({
       state,
+      isSupabaseConfigured,
+      signInWithEmail: async (email) => {
+        if (!supabase) {
+          dispatch({
+            type: 'SET_AUTH_MESSAGE',
+            error: 'Supabase is not configured for this build.',
+          })
+          return
+        }
+        dispatch({ type: 'SET_AUTH_MESSAGE', message: undefined, error: undefined })
+        const { error } = await supabase.auth.signInWithOtp({
+          email,
+          options: { emailRedirectTo: authRedirectTo() },
+        })
+        if (error) {
+          dispatch({ type: 'SET_AUTH_MESSAGE', error: error.message })
+          return
+        }
+        dispatch({
+          type: 'SET_AUTH_MESSAGE',
+          message: 'Check your email for the icebreaker sign-in link.',
+        })
+      },
+      signOut: async () => {
+        if (!supabase) return
+        const { error } = await supabase.auth.signOut()
+        if (error) dispatch({ type: 'SET_AUTH_MESSAGE', error: error.message })
+      },
       like: (id) => dispatch({ type: 'LIKE', id }),
       pass: (id) => dispatch({ type: 'PASS', id }),
       dismissMatch: () => dispatch({ type: 'DISMISS_MATCH' }),
       answer: (gameId, qIndex, optIndex) =>
         dispatch({ type: 'ANSWER', gameId, qIndex, optIndex }),
       completeGame: (gameId) => dispatch({ type: 'COMPLETE_GAME', gameId }),
-      setPreference: (preference) => dispatch({ type: 'SET_PREFERENCE', preference }),
+      setPreference: (preference) => {
+        dispatch({ type: 'SET_PREFERENCE', preference })
+        syncOnboardingProfile(preference, state.auth.userId).catch((error: unknown) => {
+          dispatch({
+            type: 'SET_AUTH_MESSAGE',
+            error: error instanceof Error ? error.message : 'Could not sync profile.',
+          })
+        })
+      },
       reset: () => dispatch({ type: 'RESET' }),
       startGame: async (matchId, category) => {
         const questions = await questionProvider.getQuestions(category, 7)
