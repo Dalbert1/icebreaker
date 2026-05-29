@@ -84,6 +84,16 @@ $env:BASE_URL='http://localhost:4173/icebreaker'; npm run shot
    Otherwise, prefer feature branches for parallel work. Rule of thumb: check
    `git branch --show-current`; push to the branch the human asked you to use.
 
+   **Auto-commit & push when a feature is complete.** Once a feature is finished
+   and verified (build/lint clean and `npm run shot` reviewed per rule 1), commit
+   the work and push it to the current branch without waiting to be asked:
+   - **On `main`:** commit and `git push` directly to `main`.
+   - **On a feature branch:** commit, push the branch, and open a PR for review
+     (`gh pr create`) targeting `main`. Don't merge it yourself.
+
+   "Complete" means a self-contained unit of work that passes verification — not
+   every intermediate edit. If verification fails, fix it before committing.
+
 4. **Mock over keys.** While validating the POC, never block on credentials or
    external APIs. If something needs an API key or a live service, stub it with
    mock data behind an interface and leave a `// TODO` noting the real wiring.
@@ -93,7 +103,7 @@ $env:BASE_URL='http://localhost:4173/icebreaker'; npm run shot
 
 5. **Hold off on anything blocking in terms of testing.** For example -
    We're currently holding off on things like wiring up session state, sign-up/authentication, etc. until
-   we get the baseline application in place/tested and reviewed with playwright. What we're looking to avoid is
+   we get the baseline application in place/tested and reviewed with playwright. What we're looking to avoid is 
    having to sign-up/sign-in, etc. every time we deploy or reboot the application just to test the UI.
 
 ## Architecture seams to respect
