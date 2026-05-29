@@ -1,1 +1,2 @@
 {"id":"int-3c9929f222a277d8d1effa2bc6469659","kind":"field_change","created_at":"2026-05-29T20:00:38.125338Z","actor":"Dalbert1","issue_id":"icebreaker-pbt","extra":{"field":"status","new_value":"closed","old_value":"in_progress","reason":"Documented Beads collaboration workflow in README"}}
+{"id":"int-5549087509d1baf43c60d52d2ac6345d","kind":"field_change","created_at":"2026-05-29T20:13:25.193753Z","actor":"Dalbert1","issue_id":"icebreaker-bld","extra":{"field":"status","new_value":"closed","old_value":"in_progress","reason":"Synced and committed Beads guide-file changes"}}
