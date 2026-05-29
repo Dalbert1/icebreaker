@@ -56,22 +56,41 @@ try {
   await page.getByRole('button', { name: /General Knowledge/ }).click()
   await shot(page, '04-game-question')
 
-  // Answer it -> feedback state.
-  await page.locator('main button').filter({ hasText: /\w/ }).nth(1).click()
+  // Answer the first question -> feedback state.
+  await page.locator('main button').nth(1).click() // nth(0) is the Back button
+  await page.waitForTimeout(350)
   await shot(page, '05-game-feedback')
 
-  // Matches list.
+  // Play through the rest of the round to reach results.
+  for (let i = 0; i < 8; i++) {
+    const advance = page.getByRole('button', { name: /Next question|See results/ })
+    if (!(await advance.count())) break
+    const last = /See results/.test((await advance.textContent()) ?? '')
+    await advance.click()
+    await page.waitForTimeout(300)
+    if (last) break
+    await page.locator('main button').nth(1).click() // answer next question
+    await page.waitForTimeout(300)
+  }
+  await shot(page, '06-game-results')
+
+  // Matches list (now shows a played round + advanced thaw).
   await page.goto(`${BASE_URL}/matches`, { waitUntil: 'networkidle' })
-  await shot(page, '06-matches')
+  await shot(page, '07-matches')
 
   // Profile.
   await page.goto(`${BASE_URL}/profile`, { waitUntil: 'networkidle' })
-  await shot(page, '07-profile')
+  await shot(page, '08-profile')
+
+  // Short-phone stress case (iPhone SE) — initial viewport must not overflow.
+  await page.setViewportSize({ width: 375, height: 667 })
+  await page.goto(`${BASE_URL}/discover`, { waitUntil: 'networkidle' })
+  await shot(page, '09-se-discover')
 
   // Desktop framing too.
   await page.setViewportSize({ width: 1280, height: 900 })
   await page.goto(`${BASE_URL}/discover`, { waitUntil: 'networkidle' })
-  await shot(page, '08-desktop')
+  await shot(page, '10-desktop')
 
   if (errors.length) {
     console.log(`\n⚠ ${errors.length} console error(s):`)

@@ -52,15 +52,15 @@ function load(): State {
   return initialState()
 }
 
-/** Derive how "thawed" a match is from completed games (0..1). */
+/**
+ * Derive how "thawed" a match is from completed games (0..1). Breaking the ice
+ * is about playing *together*, not being right — so each completed round thaws
+ * by a fixed amount (two rounds fully break the ice). This keeps the persisted
+ * thaw consistent with the in-game live thaw (which tracks questions answered).
+ */
 function thawFor(matchId: string, games: GameSession[]): number {
   const played = games.filter((g) => g.matchId === matchId && g.completedAt)
-  let t = 0
-  for (const g of played) {
-    const correct = g.userAnswers.filter((a, i) => a === g.questions[i].correctIndex).length
-    t += (correct / g.questions.length) * 0.5
-  }
-  return Math.min(1, t)
+  return Math.min(1, played.length * 0.5)
 }
 
 function reducer(state: State, action: Action): State {

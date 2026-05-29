@@ -21,7 +21,9 @@ export interface Profile {
   location: string
   bio: string
   vibes: Vibe[]
-  /** Two hex colors that seed the generated gradient portrait. */
+  /** Imported profile photo (bundled asset URL). */
+  photo: string
+  /** Two hex colors used as a fallback/accent behind the photo. */
   gradient: [string, string]
   /** A prompt + answer, dating-app style. */
   prompt: { question: string; answer: string }

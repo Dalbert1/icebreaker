@@ -115,6 +115,79 @@ export const QUESTION_SEEDS: Seed[] = [
     correct: 'The Nile',
     wrong: ['The Amazon', 'The Yangtze', 'The Mississippi'],
   },
+  // --- second pass: rounds out each category to 5 questions ---
+  {
+    category: 'General Knowledge',
+    prompt: 'What is the hardest natural substance on Earth?',
+    correct: 'Diamond',
+    wrong: ['Quartz', 'Titanium', 'Granite'],
+  },
+  {
+    category: 'General Knowledge',
+    prompt: 'Which planet spins on its side?',
+    correct: 'Uranus',
+    wrong: ['Saturn', 'Neptune', 'Venus'],
+  },
+  {
+    category: 'Film & TV',
+    prompt: 'Which sitcom is set at Paddy\'s Pub in Philadelphia?',
+    correct: "It's Always Sunny in Philadelphia",
+    wrong: ['Cheers', 'How I Met Your Mother', 'Brooklyn Nine-Nine'],
+  },
+  {
+    category: 'Film & TV',
+    prompt: 'In Pixar\'s "Up", what is the name of the dog?',
+    correct: 'Dug',
+    wrong: ['Doug', 'Russell', 'Kevin'],
+  },
+  {
+    category: 'Music',
+    prompt: 'Which band released the album "Dark Side of the Moon"?',
+    correct: 'Pink Floyd',
+    wrong: ['Led Zeppelin', 'The Who', 'Queen'],
+  },
+  {
+    category: 'Music',
+    prompt: 'How many keys are black on a standard piano?',
+    correct: '36',
+    wrong: ['52', '24', '40'],
+  },
+  {
+    category: 'Food & Drink',
+    prompt: 'Which nut is used to make traditional marzipan?',
+    correct: 'Almond',
+    wrong: ['Cashew', 'Walnut', 'Hazelnut'],
+  },
+  {
+    category: 'Food & Drink',
+    prompt: 'What gives wasabi and mustard their shared sharp kick?',
+    correct: 'Allyl isothiocyanate',
+    wrong: ['Capsaicin', 'Piperine', 'Menthol'],
+  },
+  {
+    category: 'Science',
+    prompt: 'What is the chemical symbol for gold?',
+    correct: 'Au',
+    wrong: ['Ag', 'Gd', 'Go'],
+  },
+  {
+    category: 'Science',
+    prompt: 'How many bones are in the adult human body?',
+    correct: '206',
+    wrong: ['201', '212', '198'],
+  },
+  {
+    category: 'Geography',
+    prompt: 'Which U.S. state is nicknamed the "Sooner State"?',
+    correct: 'Oklahoma',
+    wrong: ['Kansas', 'Texas', 'Nebraska'],
+  },
+  {
+    category: 'Geography',
+    prompt: 'What is the smallest country in the world by area?',
+    correct: 'Vatican City',
+    wrong: ['Monaco', 'San Marino', 'Liechtenstein'],
+  },
 ]
 
 /** Build a finished Question (with shuffled options) from a seed + rng. */

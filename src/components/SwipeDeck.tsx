@@ -21,7 +21,7 @@ export function SwipeDeck({
   const visible = profiles.slice(0, 3)
 
   return (
-    <div className="relative mx-auto aspect-[3/4.35] w-full max-w-sm">
+    <div className="relative mx-auto h-full w-full max-w-sm">
       {visible.length === 0 && <EmptyDeck />}
       {visible
         .map((profile, i) => {

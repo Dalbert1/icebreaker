@@ -27,11 +27,13 @@ export function Discover() {
         </span>
       </header>
 
-      <div className="flex flex-1 flex-col justify-center pb-2">
-        <SwipeDeck profiles={deck} onChoose={choose} />
+      <div className="flex min-h-0 flex-1 flex-col pb-2">
+        <div className="min-h-0 flex-1">
+          <SwipeDeck profiles={deck} onChoose={choose} />
+        </div>
 
         {deck.length > 0 && (
-          <div className="mx-auto mt-5 flex items-center gap-5">
+          <div className="mx-auto mt-4 flex shrink-0 items-center gap-5">
             <ActionButton label="Frost" onClick={() => choose(deck[0].id, 'pass')} variant="pass">
               <path d="M18 6 6 18M6 6l12 12" />
             </ActionButton>

@@ -188,7 +188,7 @@ function PlayRound({
             <h2 className="text-xl leading-snug text-frost">{q.prompt}</h2>
           </div>
 
-          <div className="mt-4 flex flex-1 flex-col gap-2.5">
+          <div className="mt-4 flex flex-col gap-2.5">
             {q.options.map((opt, i) => {
               const isCorrect = i === q.correctIndex
               const isPicked = i === picked
@@ -223,7 +223,7 @@ function PlayRound({
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mt-3"
+              className="mt-auto pt-3"
             >
               <p className="mb-2 text-center text-sm text-frost/70">
                 {picked === q.correctIndex ? 'Nice — ice cracking.' : 'Not quite, but the chill is lifting.'}
