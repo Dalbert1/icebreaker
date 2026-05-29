@@ -55,6 +55,13 @@ try {
   await page.getByRole('button', { name: 'Thaw' }).last().click()
   await shot(page, '03-match')
 
+  // Safety in the match flow: expand the low-key report affordance, then cancel.
+  await page.getByRole('button', { name: /^Report / }).click()
+  await page.waitForTimeout(200)
+  await shot(page, '03b-match-report')
+  await page.getByRole('button', { name: 'Cancel' }).click()
+  await page.waitForTimeout(150)
+
   // Break the ice -> category picker.
   await page.getByRole('button', { name: 'Break the ice' }).click()
   await page.waitForTimeout(400)
@@ -130,6 +137,12 @@ try {
   await page.getByRole('button', { name: /^Meet / }).click()
   await page.waitForTimeout(400)
   await shot(page, '08d-want-to-chat-thawed')
+
+  // Replay -> category picker now shows the personal round in its "Played"
+  // state (and a revealed name, since the ice is fully broken).
+  await page.getByRole('button', { name: 'Play another game' }).click()
+  await page.waitForTimeout(300)
+  await shot(page, '08g-personal-played')
 
   // Matches list.
   await page.goto(`${BASE_URL}/matches`, { waitUntil: 'networkidle' })
