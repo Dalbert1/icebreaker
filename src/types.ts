@@ -59,6 +59,8 @@ export interface GameSession {
   questions: Question[]
   /** Index into options the user picked, per question (-1 = unanswered). */
   userAnswers: number[]
+  /** Whether the user ran out of time on each question. */
+  timedOut: boolean[]
   /** Simulated answers from the match. */
   matchAnswers: number[]
   startedAt: number

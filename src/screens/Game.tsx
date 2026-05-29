@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'motion/react'
 import { useStore } from '../lib/store'
@@ -9,11 +9,12 @@ import { GradientPortrait } from '../components/GradientPortrait'
 import { ThawBar } from '../components/ui'
 
 type Phase = 'category' | 'playing' | 'wantchat'
+const QUESTION_SECONDS = 15
 
 export function Game() {
   const { matchId = '' } = useParams()
   const navigate = useNavigate()
-  const { state, startGame, answer, completeGame, unmatch } = useStore()
+  const { state, startGame, answer, timeout, completeGame, unmatch } = useStore()
 
   const profile = PROFILES.find((p) => p.id === matchId)
   const match = state.matches.find((m) => m.profileId === matchId)
@@ -85,13 +86,19 @@ export function Game() {
         {phase === 'category' && <CategoryPicker loading={loading} onPick={pickCategory} />}
         {phase === 'playing' && game && (
           <PlayRound
+            key={`${game.id}-${qIndex}`}
             game={game}
             qIndex={qIndex}
             picked={picked}
+            timedOut={game.timedOut?.[qIndex] ?? false}
             onPick={(opt) => {
               if (picked !== null) return
               setPicked(opt)
               answer(game.id, qIndex, opt)
+            }}
+            onTimeout={() => {
+              setPicked(null)
+              timeout(game.id, qIndex)
             }}
             onNext={() => {
               if (qIndex + 1 >= game.questions.length) {
@@ -172,26 +179,60 @@ function PlayRound({
   game,
   qIndex,
   picked,
+  timedOut,
   onPick,
+  onTimeout,
   onNext,
 }: {
   game: GameSession
   qIndex: number
   picked: number | null
+  timedOut: boolean
   onPick: (opt: number) => void
+  onTimeout: () => void
   onNext: () => void
 }) {
   const q = game.questions[qIndex]
-  const revealed = picked !== null
+  const [remaining, setRemaining] = useState(QUESTION_SECONDS)
+  const revealed = picked !== null || timedOut
   const matchPick = game.matchAnswers[qIndex]
+  const timerPct = remaining / QUESTION_SECONDS
+  const timerTone =
+    remaining <= 5 ? 'text-ember' : remaining <= 8 ? 'text-amber' : 'text-ice'
+
+  useEffect(() => {
+    if (revealed) return
+    const startedAt = Date.now()
+    const interval = window.setInterval(() => {
+      const elapsed = Math.floor((Date.now() - startedAt) / 1000)
+      const next = Math.max(0, QUESTION_SECONDS - elapsed)
+      setRemaining(next)
+      if (next <= 0) {
+        window.clearInterval(interval)
+        onTimeout()
+      }
+    }, 200)
+    return () => window.clearInterval(interval)
+  }, [revealed, onTimeout, game.id, qIndex])
 
   return (
     <div className="flex flex-1 flex-col">
       <div className="flex items-center justify-between py-1 text-xs text-frost/45">
         <span className="uppercase tracking-wider text-amber/80">{q.category}</span>
-        <span>
-          {qIndex + 1} / {game.questions.length}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className={timerTone}>{remaining}s</span>
+          <span>
+            {qIndex + 1} / {game.questions.length}
+          </span>
+        </div>
+      </div>
+      <div className="mb-2 h-1.5 overflow-hidden rounded-full bg-frost/10">
+        <div
+          className={`h-full rounded-full transition-all duration-200 ${
+            remaining <= 5 ? 'bg-ember' : remaining <= 8 ? 'bg-amber' : 'bg-thaw'
+          }`}
+          style={{ width: `${Math.max(0, timerPct * 100)}%` }}
+        />
       </div>
 
       <AnimatePresence mode="wait">
@@ -245,7 +286,9 @@ function PlayRound({
               className="mt-auto pt-3"
             >
               <p className="mb-2 text-center text-sm text-frost/70">
-                {picked === q.correctIndex ? 'Nice — ice cracking.' : 'Not quite, but the chill is lifting.'}
+                {timedOut
+                  ? 'Out of time — marked incorrect.'
+                  : picked === q.correctIndex ? 'Nice — ice cracking.' : 'Not quite, but the chill is lifting.'}
                 {matchPick === q.correctIndex ? ' They got it too.' : ' They missed this one.'}
               </p>
               <button

@@ -18,6 +18,8 @@ and auth. See [`docs/ROADMAP.md`](docs/ROADMAP.md).
 - Supabase Phase 2 foundation: optional `@supabase/supabase-js` client,
   `.env.example`, email magic-link sign-in/sign-out, session restoration,
   onboarding profile/preference upsert, setup docs, and starter SQL/RLS schema.
+- 15-second countdown timer on every icebreaker question; unanswered questions
+  time out, reveal the correct answer, and count as incorrect.
 
 ### Fixed
 

@@ -43,6 +43,7 @@ type Action =
   | { type: 'DISMISS_MATCH' }
   | { type: 'ADD_GAME'; game: GameSession }
   | { type: 'ANSWER'; gameId: string; qIndex: number; optIndex: number }
+  | { type: 'TIMEOUT'; gameId: string; qIndex: number }
   | { type: 'COMPLETE_GAME'; gameId: string }
   | { type: 'SET_PREFERENCE'; preference: GenderPreference }
   | { type: 'SET_AUTH'; auth: AuthState }
@@ -149,8 +150,21 @@ function reducer(state: State, action: Action): State {
       const games = state.games.map((g) => {
         if (g.id !== action.gameId) return g
         const userAnswers = [...g.userAnswers]
+        const timedOut = [...(g.timedOut ?? new Array(g.questions.length).fill(false))]
         userAnswers[action.qIndex] = action.optIndex
-        return { ...g, userAnswers }
+        timedOut[action.qIndex] = false
+        return { ...g, userAnswers, timedOut }
+      })
+      return { ...state, games }
+    }
+    case 'TIMEOUT': {
+      const games = state.games.map((g) => {
+        if (g.id !== action.gameId) return g
+        const userAnswers = [...g.userAnswers]
+        const timedOut = [...(g.timedOut ?? new Array(g.questions.length).fill(false))]
+        userAnswers[action.qIndex] = -1
+        timedOut[action.qIndex] = true
+        return { ...g, userAnswers, timedOut }
       })
       return { ...state, games }
     }
@@ -183,6 +197,7 @@ interface Store {
   dismissMatch: () => void
   startGame: (matchId: string, category: TriviaCategory) => Promise<string>
   answer: (gameId: string, qIndex: number, optIndex: number) => void
+  timeout: (gameId: string, qIndex: number) => void
   completeGame: (gameId: string) => void
   setPreference: (preference: GenderPreference) => void
   reset: () => void
@@ -326,6 +341,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       dismissMatch: () => dispatch({ type: 'DISMISS_MATCH' }),
       answer: (gameId, qIndex, optIndex) =>
         dispatch({ type: 'ANSWER', gameId, qIndex, optIndex }),
+      timeout: (gameId, qIndex) => dispatch({ type: 'TIMEOUT', gameId, qIndex }),
       completeGame: (gameId) => dispatch({ type: 'COMPLETE_GAME', gameId }),
       setPreference: (preference) => {
         dispatch({ type: 'SET_PREFERENCE', preference })
@@ -347,6 +363,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           category,
           questions,
           userAnswers: new Array(questions.length).fill(-1),
+          timedOut: new Array(questions.length).fill(false),
           matchAnswers: simulateMatchAnswers(questions, seed),
           startedAt: Date.now(),
         }
