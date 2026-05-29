@@ -26,6 +26,8 @@ and auth. See [`docs/ROADMAP.md`](docs/ROADMAP.md).
 - Match flow now routes "Break the ice" directly to the icebreaker game instead
   of chat, blocks direct chat access until at least one game is completed, and
   offers chat / replay / unmatch after the first game.
+- Icebreaker category picker now scrolls on short mobile viewports and clears
+  the bottom navigation so every category remains reachable.
 
 ## [0.1.0] — 2026-05-28
 
