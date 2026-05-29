@@ -5,6 +5,8 @@ and **exit criteria** (how we know it's done). Phases are sequential but the
 cross-cutting concerns (bottom of file) run throughout.
 
 See [`ARCHITECTURE.md`](./ARCHITECTURE.md) for the system design behind these.
+The Phase 2+ backend/auth/game-state plan lives in
+[`PHASE2_BACKEND_ARCHITECTURE.md`](./PHASE2_BACKEND_ARCHITECTURE.md).
 
 ---
 
@@ -50,6 +52,8 @@ works at 390px and on a phone over the LAN; verified via `npm run shot`.
   adapter stays for dev/offline
 - Profile create/edit; real photo upload (replaces generated portraits, which
   remain the frost/thaw canvas overlay)
+- Session state machine (`checking` / `signedOut` / `needsProfile` / `ready`)
+  that keeps routing and profile onboarding explicit
 - Row-Level Security on all tables
 
 **Exit:** two real accounts on two devices can sign in and see their own data
@@ -64,11 +68,15 @@ persisted server-side. No gameplay changes required.
 - `swipes` + reciprocal `matches` via DB trigger (replaces "always match")
 - Async trivia persisted in `games` / `game_answers`; both players answer on
   their own time, results reconcile
+- 15-second answer windows; late or missing answers are marked incorrect /
+  timed out by the backend
+- Cumulative match scoreboards across repeated icebreaker games
 - Server-computed `thaw` and match state
 - Basic chat unlock after the first icebreaker round (`messages`)
 
 **Exit:** User A swipes, User B swipes back → match appears for both; either can
-start a round, the other completes it later, both see synced results and thaw.
+start a round, the other completes it later, both see synced results, thaw, and
+their head-to-head history.
 
 ---
 

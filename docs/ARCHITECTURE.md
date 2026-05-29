@@ -2,6 +2,8 @@
 
 A living document describing how icebreaker is built today and where it's
 headed. Pair it with [`ROADMAP.md`](./ROADMAP.md) for the phased plan.
+For the next backend phase, see
+[`PHASE2_BACKEND_ARCHITECTURE.md`](./PHASE2_BACKEND_ARCHITECTURE.md).
 
 ---
 
@@ -95,6 +97,10 @@ Matching and thaw are computed server-side (DB triggers / RPC) so clients can't
 forge results. Question integrity (correct answers) must live server-side once
 games are competitive — see §6.
 
+The expanded Phase 2+ plan adds auth/session state, profile onboarding,
+15-second server-authoritative answer windows, and cumulative match scoreboards
+in [`PHASE2_BACKEND_ARCHITECTURE.md`](./PHASE2_BACKEND_ARCHITECTURE.md).
+
 ## 5. Realtime trivia (Phase 4)
 
 Async (turn-based) trivia is Phase 3 and needs no realtime — each player answers
@@ -141,6 +147,7 @@ framework-agnostic now keeps both doors open.
 | 5 | Local generated portraits | No image hosting/keys; doubles as the frost/thaw canvas. |
 | 6 | Verify with Playwright locally, not GH Pages (yet) | Tight visual loop; deploy when there's something to share. |
 | 7 | Async trivia before live | Lower complexity; proves the loop before adding Realtime. |
+| 8 | Server-authoritative games | Answer deadlines, correctness, scoring, thaw, and scoreboards must be computed outside the client once games involve real users. |
 
 ## 9. Known POC simplifications (to revisit)
 

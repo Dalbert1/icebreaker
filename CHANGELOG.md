@@ -10,6 +10,12 @@ Next: **Phase 2 — Supabase backend + accounts.** Introduce a Supabase store
 adapter behind the existing `useStore()` contract, real profiles + photo upload,
 and auth. See [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
+### Added
+
+- Backend planning doc for Phase 2+ auth/session state, profile lifecycle,
+  server-authoritative icebreaker games, 15-second answer deadlines, cumulative
+  match scoreboards, RLS principles, and future product ideas.
+
 ## [0.1.0] — 2026-05-28
 
 **Phase 1: a believable, end-to-end POC on mock data — built, polished, and
