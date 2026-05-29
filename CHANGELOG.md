@@ -19,6 +19,12 @@ and auth. See [`docs/ROADMAP.md`](docs/ROADMAP.md).
   `.env.example`, email magic-link sign-in/sign-out, session restoration,
   onboarding profile/preference upsert, setup docs, and starter SQL/RLS schema.
 
+### Fixed
+
+- Match flow now routes "Break the ice" directly to the icebreaker game instead
+  of chat, blocks direct chat access until at least one game is completed, and
+  offers chat / replay / unmatch after the first game.
+
 ## [0.1.0] — 2026-05-28
 
 **Phase 1: a believable, end-to-end POC on mock data — built, polished, and

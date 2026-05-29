@@ -13,6 +13,7 @@ export function Chat() {
 
   const profile = PROFILES.find((p) => p.id === matchId)
   const match = state.matches.find((m) => m.profileId === matchId)
+  const hasCompletedGame = state.games.some((g) => g.matchId === matchId && g.completedAt)
 
   if (!profile || !match) {
     return (
@@ -27,6 +28,29 @@ export function Chat() {
 
   const revealed = match.thaw >= 0.5
   const displayName = revealed ? profile.name : `${profile.name.charAt(0)}······`
+
+  if (!hasCompletedGame) {
+    return (
+      <div className="flex h-full flex-col items-center justify-center gap-4 px-6 text-center">
+        <GradientPortrait profile={profile} thaw={match.thaw} className="h-28 w-28 rounded-3xl" />
+        <div>
+          <h1 className="text-3xl text-frost">Break the ice first</h1>
+          <p className="mt-2 text-sm text-frost/60">
+            Play one icebreaker before chatting with {profile.name}.
+          </p>
+        </div>
+        <Link
+          to={`/game/${matchId}`}
+          className="bg-thaw rounded-2xl px-5 py-3 text-sm font-semibold text-abyss"
+        >
+          Start icebreaker
+        </Link>
+        <Link to="/matches" className="text-sm text-frost/45">
+          Back to matches
+        </Link>
+      </div>
+    )
+  }
 
   return (
     <div className="flex h-full flex-col">

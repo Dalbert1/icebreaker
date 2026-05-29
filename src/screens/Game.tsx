@@ -13,7 +13,7 @@ type Phase = 'category' | 'playing' | 'wantchat'
 export function Game() {
   const { matchId = '' } = useParams()
   const navigate = useNavigate()
-  const { state, startGame, answer, completeGame } = useStore()
+  const { state, startGame, answer, completeGame, unmatch } = useStore()
 
   const profile = PROFILES.find((p) => p.id === matchId)
   const match = state.matches.find((m) => m.profileId === matchId)
@@ -110,7 +110,16 @@ export function Game() {
             profile={profile}
             thaw={liveThaw}
             onYes={() => navigate(`/chat/${matchId}`, { replace: true })}
-            onNo={() => navigate('/discover', { replace: true })}
+            onReplay={() => {
+              setGameId(null)
+              setQIndex(0)
+              setPicked(null)
+              setPhase('category')
+            }}
+            onUnmatch={() => {
+              unmatch(matchId)
+              navigate('/matches', { replace: true })
+            }}
           />
         )}
       </div>
@@ -258,13 +267,15 @@ function WantToChat({
   profile,
   thaw,
   onYes,
-  onNo,
+  onReplay,
+  onUnmatch,
 }: {
   game: GameSession
   profile: Profile
   thaw: number
   onYes: () => void
-  onNo: () => void
+  onReplay: () => void
+  onUnmatch: () => void
 }) {
   const stats = useMemo(() => {
     const yours = game.userAnswers.filter((a, i) => a === game.questions[i].correctIndex).length
@@ -328,13 +339,21 @@ function WantToChat({
           onClick={onYes}
           className="bg-thaw w-full rounded-2xl py-4 text-lg font-semibold text-abyss transition-transform active:scale-[0.98]"
         >
-          Yes, please.
+          Chat now
         </button>
         <button
-          onClick={onNo}
+          onClick={onReplay}
           className="glass w-full rounded-2xl py-3.5 text-sm font-medium text-frost/70 transition-transform active:scale-[0.98]"
         >
-          No thanks.
+          Play another game
+        </button>
+        <button
+          onClick={() => {
+            if (confirm(`Unmatch with ${profile.name}?`)) onUnmatch()
+          }}
+          className="w-full rounded-2xl border border-frost/12 py-3 text-sm font-medium text-frost/45 transition-colors hover:border-ember/40 hover:text-ember"
+        >
+          Unmatch
         </button>
       </motion.div>
     </div>

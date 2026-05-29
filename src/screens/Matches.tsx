@@ -36,10 +36,11 @@ export function Matches() {
             const p = byId.get(m.profileId)
             if (!p) return null
             const games = state.games.filter((g) => g.matchId === m.profileId && g.completedAt)
+            const hasPlayed = games.length > 0
             return (
               <Link
                 key={m.profileId}
-                to={`/chat/${m.profileId}`}
+                to={hasPlayed ? `/chat/${m.profileId}` : `/game/${m.profileId}`}
                 className="glass flex items-center gap-4 p-3 transition-transform active:scale-[0.99]"
                 style={{ borderRadius: '20px' }}
               >
@@ -64,7 +65,7 @@ export function Matches() {
                   <ThawBar thaw={m.thaw} showLabel={false} />
                 </div>
                 <span className="bg-thaw shrink-0 rounded-full px-3 py-2 text-xs font-semibold text-abyss">
-                  {games.length ? 'Chat' : 'Break ice'}
+                  {hasPlayed ? 'Chat' : 'Break ice'}
                 </span>
               </Link>
             )

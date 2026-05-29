@@ -71,7 +71,7 @@ export function MatchModal({
         <button
           onClick={() => {
             onClose()
-            navigate(`/chat/${profile.id}`)
+            navigate(`/game/${profile.id}`)
           }}
           className="bg-thaw mt-7 w-full rounded-2xl py-3.5 font-semibold text-abyss transition-transform active:scale-[0.98]"
         >

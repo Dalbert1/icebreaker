@@ -39,6 +39,7 @@ interface State {
 type Action =
   | { type: 'LIKE'; id: string }
   | { type: 'PASS'; id: string }
+  | { type: 'UNMATCH'; id: string }
   | { type: 'DISMISS_MATCH' }
   | { type: 'ADD_GAME'; game: GameSession }
   | { type: 'ANSWER'; gameId: string; qIndex: number; optIndex: number }
@@ -132,6 +133,14 @@ function reducer(state: State, action: Action): State {
         deck: state.deck.filter((id) => id !== action.id),
         passed: [...state.passed, action.id],
       }
+    case 'UNMATCH':
+      return {
+        ...state,
+        matches: state.matches.filter((m) => m.profileId !== action.id),
+        games: state.games.filter((g) => g.matchId !== action.id),
+        pendingMatchId:
+          state.pendingMatchId === action.id ? undefined : state.pendingMatchId,
+      }
     case 'DISMISS_MATCH':
       return { ...state, pendingMatchId: undefined }
     case 'ADD_GAME':
@@ -170,6 +179,7 @@ interface Store {
   signOut: () => Promise<void>
   like: (id: string) => void
   pass: (id: string) => void
+  unmatch: (id: string) => void
   dismissMatch: () => void
   startGame: (matchId: string, category: TriviaCategory) => Promise<string>
   answer: (gameId: string, qIndex: number, optIndex: number) => void
@@ -312,6 +322,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       },
       like: (id) => dispatch({ type: 'LIKE', id }),
       pass: (id) => dispatch({ type: 'PASS', id }),
+      unmatch: (id) => dispatch({ type: 'UNMATCH', id }),
       dismissMatch: () => dispatch({ type: 'DISMISS_MATCH' }),
       answer: (gameId, qIndex, optIndex) =>
         dispatch({ type: 'ANSWER', gameId, qIndex, optIndex }),

@@ -55,11 +55,9 @@ try {
   await page.getByRole('button', { name: 'Thaw' }).last().click()
   await shot(page, '03-match')
 
-  // Break the ice -> chat -> Play Icebreaker -> category picker.
+  // Break the ice -> category picker.
   await page.getByRole('button', { name: 'Break the ice' }).click()
   await page.waitForTimeout(400)
-  // Now on chat screen — click Play Icebreaker
-  await page.getByRole('link', { name: /Play Icebreaker/ }).click()
   await shot(page, '04-game-category')
 
   // Pick an icebreaker (category) -> first question.
@@ -84,8 +82,8 @@ try {
   }
   await shot(page, '07-want-to-chat')
 
-  // Say "Yes, please." -> chat screen.
-  await page.getByRole('button', { name: 'Yes, please.' }).click()
+  // Say "Chat now" -> chat screen.
+  await page.getByRole('button', { name: 'Chat now' }).click()
   await page.waitForTimeout(400)
   await shot(page, '08-chat')
 
