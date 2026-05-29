@@ -167,8 +167,10 @@ sync**.
 
 ### Beads collaboration workflow
 
-A simple way to start is to treat Beads as the shared queue and have each agent
-claim exactly one issue before editing code.
+Treat Beads as the shared queue. Each agent claims exactly one issue before
+editing code, works it on a local feature branch, verifies it, then pushes
+directly to `main`. There is no PR review loop for routine work; the human
+reviews the deployed GitHub Pages result.
 
 I’d split the first round like this:
 
@@ -205,6 +207,9 @@ After that, split the actual product work:
 For each agent/session, use this rhythm:
 
 ```bash
+git fetch origin main
+git checkout -B <issue-id> origin/main
+
 bd ready
 bd show <id>
 bd update <id> --claim
@@ -215,11 +220,17 @@ npm test
 npm run build
 npm run shot   # if UI changed
 
-bd close <id> --reason="Completed"
+git fetch origin main
+git rebase origin/main
+git push origin HEAD:main
+
+bd close <id> --reason="Shipped to main"
+bd dolt push
 git status
 ```
 
-Because the repo’s active Beads profile is conservative, I’d avoid
-auto-commit/push unless you explicitly ask one of us to do it. The practical
-rule is: one issue claimed per agent, don’t edit the same files unless
-necessary, and close the bead only after verification passes.
+The practical rule is: one issue claimed per agent, don’t edit the same files
+unless necessary, keep each change small enough to diagnose from the deployed
+result, and close the bead only after the verified change is on `main`. If
+`main` moves before push, rebase and re-run affected checks before pushing
+again.

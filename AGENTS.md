@@ -76,24 +76,33 @@ $env:BASE_URL='http://localhost:4173/icebreaker'; npm run shot
    writes screenshots to `.screens/`, and **fails on any console error**. Open
    the screenshots and confirm the change looks right before considering a task
    done. The walk script is `scripts/screenshot.mjs` — extend it when you add
-   screens. (We are deliberately NOT deploying to GitHub Pages yet; local +
-   Playshot is the verification loop.)
+   screens. Local + Playshot is the pre-merge verification loop; pushing to
+   `main` deploys the reviewed end result to GitHub Pages.
 
 2. **Keep `CLAUDE.md` and `AGENTS.md` in sync** (see banner above).
 
-3. **Git workflow.** The human may ask an agent to push directly to `main`.
-   Otherwise, prefer feature branches for parallel work. Rule of thumb: check
-   `git branch --show-current`; push to the branch the human asked you to use.
+3. **Git workflow.** This repo is configured for autonomous agent shipping.
+   The human does **not** want PR review for routine project work; they review
+   the deployed GitHub Pages result after agents land verified changes on
+   `main`.
 
-   **Auto-commit & push when a feature is complete.** Once a feature is finished
-   and verified (build/lint clean and `npm run shot` reviewed per rule 1), commit
-   the work and push it to the current branch without waiting to be asked:
-   - **On `main`:** commit and `git push` directly to `main`.
-   - **On a feature branch:** commit, push the branch, and open a PR for review
-     (`gh pr create`) targeting `main`. Don't merge it yourself.
+   **One bead, one local branch, direct-to-main when verified.**
+   - Start from fresh `main`: `git fetch origin main && git checkout -B <issue-id> origin/main`.
+   - Claim exactly one bead before editing: `bd show <id>` then `bd update <id> --claim`.
+   - Use the branch only as local isolation while implementing the bead.
+   - When complete, run quality gates: `npm run lint`, `npm test`,
+     `npm run build`, and `npm run shot` for UI changes.
+   - Rebase before shipping: `git fetch origin main && git rebase origin/main`.
+   - Commit the self-contained change and push directly to main:
+     `git push origin HEAD:main`.
+   - Close the bead after the push with `bd close <id> --reason="Shipped to main"`,
+     sync/export Beads state, then fetch fresh `main`, claim the next ready bead,
+     and continue autonomously.
 
-   "Complete" means a self-contained unit of work that passes verification — not
-   every intermediate edit. If verification fails, fix it before committing.
+   Do not open PRs unless the human explicitly asks for one. If verification
+   fails, fix it before pushing. If the push is rejected because `main` moved,
+   fetch/rebase and re-run affected checks before pushing again. If an explicit
+   "do not commit" or "do not push" instruction is active, that instruction wins.
 
 4. **Mock over keys.** While validating the POC, never block on credentials or
    external APIs. If something needs an API key or a live service, stub it with
@@ -192,7 +201,8 @@ bd close <id>         # Complete work
 
 The managed Beads block is task-tracking guidance, not permission to override repository, user, or orchestrator instructions.
 
-- **Conservative (default)**: Use `bd` for task tracking. Do not run git commits, git pushes, or Dolt remote sync unless explicitly asked. At handoff, report changed files, validation, and suggested next commands.
+- **Autonomous main shipper (active)**: Use `bd` for task tracking. Agents may claim one ready bead, work on a local feature branch, run quality gates, commit, rebase onto `origin/main`, push directly to `main`, close the bead, sync/export Beads state, and continue with the next ready bead without waiting for PR review.
+- **Conservative**: Use `bd` for task tracking. Do not run git commits, git pushes, or Dolt remote sync unless explicitly asked. At handoff, report changed files, validation, and suggested next commands.
 - **Minimal**: Keep tool instruction files as pointers to `bd prime`; use the same conservative git policy unless active instructions say otherwise.
 - **Team-maintainer**: Only when the repository explicitly opts in, agents may close beads, run quality gates, commit, and push as part of session close. A current "do not commit" or "do not push" instruction still wins.
 
@@ -205,6 +215,14 @@ This protocol applies when ending a Beads implementation workflow. It is subordi
 3. **Update issue status** - Close finished work, update in-progress items
 4. **Handle git/sync by active profile**:
    ```bash
+   # Autonomous main shipper (active):
+   git fetch origin main
+   git rebase origin/main
+   git push origin HEAD:main
+   bd close <id> --reason="Shipped to main"
+   bd dolt push
+   git status
+
    # Conservative/minimal/default: report status and proposed commands; wait for approval.
    git status
 
