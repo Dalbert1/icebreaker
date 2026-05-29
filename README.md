@@ -164,3 +164,62 @@ Read [`CLAUDE.md`](CLAUDE.md) (mirrored to `AGENTS.md` for Codex). Standing
 rules: **verify UI changes with `npm run shot`**, **keep mocks instead of
 blocking on API keys** while validating, and **keep those two guide files in
 sync**.
+
+### Beads collaboration workflow
+
+A simple way to start is to treat Beads as the shared queue and have each agent
+claim exactly one issue before editing code.
+
+I’d split the first round like this:
+
+```bash
+bd ready
+bd show icebreaker-29f
+bd update icebreaker-29f --claim
+```
+
+Have **Claude Code start with `icebreaker-29f`** because it is coordination
+hygiene: sync `CLAUDE.md` and `AGENTS.md`. That prevents future agents from
+reading different instructions.
+
+Have **me start with `icebreaker-b6w`** next because it finishes the migration
+from `TODO.md` into Beads and reduces duplicate task tracking:
+
+```bash
+bd show icebreaker-b6w
+bd update icebreaker-b6w --claim
+```
+
+After that, split the actual product work:
+
+- **Claude Code:** `icebreaker-ceg` personal “About Name” icebreaker. It is the
+  largest feature and has a design doc.
+- **Me:** `icebreaker-kka` store adapter/session-state refactor. It touches
+  architecture and helps future Supabase work.
+- **Either agent:** `icebreaker-275` discover-card frosted portrait prototype,
+  because it is mostly UI/product decision.
+- **Either agent after UX settles:** `icebreaker-es8` Playwright coverage.
+- **Later/backend-oriented:** `icebreaker-wzg` Supabase schema alignment.
+- **Later/product safety:** `icebreaker-6wn` report/block/unmatch affordances.
+
+For each agent/session, use this rhythm:
+
+```bash
+bd ready
+bd show <id>
+bd update <id> --claim
+
+# do the work
+npm run lint
+npm test
+npm run build
+npm run shot   # if UI changed
+
+bd close <id> --reason="Completed"
+git status
+```
+
+Because the repo’s active Beads profile is conservative, I’d avoid
+auto-commit/push unless you explicitly ask one of us to do it. The practical
+rule is: one issue claimed per agent, don’t edit the same files unless
+necessary, and close the bead only after verification passes.
