@@ -74,3 +74,16 @@ export interface Match {
   thaw: number
   lastGameId?: string
 }
+
+/**
+ * A chat message in a match thread. POC is local-only and single-sided: the
+ * user's own messages are real and persisted; `'them'` is reserved for Phase 3
+ * real multi-user messaging.
+ */
+export interface Message {
+  id: string
+  matchId: string
+  sender: 'you' | 'them'
+  body: string
+  sentAt: number
+}

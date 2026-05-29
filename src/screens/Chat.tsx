@@ -1,19 +1,49 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useStore } from '../lib/store'
 import { PROFILES } from '../data/profiles'
+import { conversationStartersFor } from '../lib/conversationStarters'
 import { GradientPortrait } from '../components/GradientPortrait'
 import { ThawBar, VibePill } from '../components/ui'
 
 export function Chat() {
   const { matchId = '' } = useParams()
   const navigate = useNavigate()
-  const { state } = useStore()
+  const { state, sendMessage } = useStore()
   const [input, setInput] = useState('')
 
   const profile = PROFILES.find((p) => p.id === matchId)
   const match = state.matches.find((m) => m.profileId === matchId)
-  const hasCompletedGame = state.games.some((g) => g.matchId === matchId && g.completedAt)
+  const completedGames = state.games.filter((g) => g.matchId === matchId && g.completedAt)
+  const hasCompletedGame = completedGames.length > 0
+
+  const messages = useMemo(
+    () =>
+      state.messages
+        .filter((m) => m.matchId === matchId)
+        .sort((a, b) => a.sentAt - b.sentAt),
+    [state.messages, matchId],
+  )
+
+  // Conversation openers derived from the most recently completed round.
+  const starters = useMemo(() => {
+    if (!profile || completedGames.length === 0) return []
+    const latest = completedGames.reduce((a, b) =>
+      (a.completedAt ?? 0) >= (b.completedAt ?? 0) ? a : b,
+    )
+    return conversationStartersFor(latest, profile)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile?.id, completedGames.length])
+
+  function send(body: string) {
+    sendMessage(matchId, body)
+    setInput('')
+  }
+
+  const bottomRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages.length])
 
   if (!profile || !match) {
     return (
@@ -102,19 +132,60 @@ export function Chat() {
 
       {/* Messages */}
       <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
-        <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
-          <span className="text-4xl">🧊</span>
-          <p className="text-sm text-frost/50">
-            {revealed
-              ? `Say hi to ${profile.name}! The ice is broken — make it count.`
-              : 'Play another icebreaker to reveal more before you say hello.'}
-          </p>
-        </div>
+        {messages.length === 0 ? (
+          <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
+            <span className="text-4xl">🧊</span>
+            <p className="text-sm text-frost/50">
+              The ice is broken with {profile.name}. Kick it off 👇
+            </p>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-2">
+            {messages.map((m) => (
+              <div
+                key={m.id}
+                className={m.sender === 'you' ? 'flex justify-end' : 'flex justify-start'}
+              >
+                <div
+                  className={`max-w-[78%] rounded-2xl px-3.5 py-2 text-sm ${
+                    m.sender === 'you'
+                      ? 'bg-thaw rounded-br-md text-abyss'
+                      : 'glass rounded-bl-md text-frost'
+                  }`}
+                >
+                  {m.body}
+                </div>
+              </div>
+            ))}
+            <div ref={bottomRef} />
+          </div>
+        )}
       </div>
 
       {/* Input area */}
       <div className="shrink-0 border-t border-frost/8 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3">
-        <div className="flex items-end gap-2">
+        {/* Conversation starters from the last round (only before the first message) */}
+        {messages.length === 0 && starters.length > 0 && (
+          <div className="no-scrollbar mb-2 flex gap-2 overflow-x-auto pb-1">
+            {starters.map((s, i) => (
+              <button
+                key={i}
+                onClick={() => send(s)}
+                className="glass shrink-0 max-w-[85%] rounded-2xl px-3.5 py-2 text-left text-xs text-frost/85 transition-all hover:border-ice/40 active:scale-[0.98]"
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+        )}
+
+        <form
+          onSubmit={(e) => {
+            e.preventDefault()
+            if (input.trim()) send(input)
+          }}
+          className="flex items-end gap-2"
+        >
           <input
             type="text"
             value={input}
@@ -123,6 +194,7 @@ export function Chat() {
             className="glass min-h-[44px] flex-1 rounded-2xl px-4 py-2.5 text-sm text-frost placeholder-frost/30 outline-none"
           />
           <button
+            type="submit"
             disabled={!input.trim()}
             className="bg-thaw flex h-11 w-11 shrink-0 items-center justify-center rounded-full font-semibold text-abyss transition-transform active:scale-95 disabled:opacity-40"
             aria-label="Send"
@@ -132,7 +204,7 @@ export function Chat() {
               <path d="M22 2 15 22 11 13 2 9l20-7Z" />
             </svg>
           </button>
-        </div>
+        </form>
 
         {/* Play Icebreaker */}
         <Link

@@ -6,7 +6,7 @@ import {
   useReducer,
   type ReactNode,
 } from 'react'
-import type { GameSession, Match, Question, TriviaCategory } from '../types'
+import type { GameSession, Match, Message, Question, TriviaCategory } from '../types'
 import { PROFILES } from '../data/profiles'
 import { questionProvider } from './questionProvider'
 import { authRedirectTo, isSupabaseConfigured, supabase } from './supabase'
@@ -29,6 +29,8 @@ interface State {
   passed: string[]
   matches: Match[]
   games: GameSession[]
+  /** Local-only chat messages, keyed implicitly by `matchId`. */
+  messages: Message[]
   /** Set when a like turns into a match, so the UI can show the match modal. */
   pendingMatchId?: string
   /** Undefined means onboarding not completed yet. */
@@ -42,6 +44,7 @@ type Action =
   | { type: 'UNMATCH'; id: string }
   | { type: 'DISMISS_MATCH' }
   | { type: 'ADD_GAME'; game: GameSession }
+  | { type: 'SEND_MESSAGE'; message: Message }
   | { type: 'ANSWER'; gameId: string; qIndex: number; optIndex: number }
   | { type: 'TIMEOUT'; gameId: string; qIndex: number }
   | { type: 'COMPLETE_GAME'; gameId: string }
@@ -67,6 +70,7 @@ function initialState(): State {
     passed: [],
     matches: [],
     games: [],
+    messages: [],
     genderPreference: undefined,
     auth: { status: isSupabaseConfigured ? 'checking' : 'mock' },
   }
@@ -139,6 +143,7 @@ function reducer(state: State, action: Action): State {
         ...state,
         matches: state.matches.filter((m) => m.profileId !== action.id),
         games: state.games.filter((g) => g.matchId !== action.id),
+        messages: state.messages.filter((m) => m.matchId !== action.id),
         pendingMatchId:
           state.pendingMatchId === action.id ? undefined : state.pendingMatchId,
       }
@@ -146,6 +151,8 @@ function reducer(state: State, action: Action): State {
       return { ...state, pendingMatchId: undefined }
     case 'ADD_GAME':
       return { ...state, games: [...state.games, action.game] }
+    case 'SEND_MESSAGE':
+      return { ...state, messages: [...state.messages, action.message] }
     case 'ANSWER': {
       const games = state.games.map((g) => {
         if (g.id !== action.gameId) return g
@@ -195,6 +202,7 @@ interface Store {
   pass: (id: string) => void
   unmatch: (id: string) => void
   dismissMatch: () => void
+  sendMessage: (matchId: string, body: string) => void
   startGame: (matchId: string, category: TriviaCategory) => Promise<string>
   answer: (gameId: string, qIndex: number, optIndex: number) => void
   timeout: (gameId: string, qIndex: number) => void
@@ -223,6 +231,7 @@ function simulateMatchAnswers(questions: Question[], seed: number): number[] {
 }
 
 let gameCounter = 0
+let messageCounter = 0
 
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(reducer, undefined, load)
@@ -272,6 +281,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         passed: state.passed,
         matches: state.matches,
         games: state.games,
+        messages: state.messages,
         pendingMatchId: state.pendingMatchId,
         genderPreference: state.genderPreference,
       }
@@ -339,6 +349,20 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       pass: (id) => dispatch({ type: 'PASS', id }),
       unmatch: (id) => dispatch({ type: 'UNMATCH', id }),
       dismissMatch: () => dispatch({ type: 'DISMISS_MATCH' }),
+      sendMessage: (matchId, body) => {
+        const trimmed = body.trim()
+        if (!trimmed) return
+        dispatch({
+          type: 'SEND_MESSAGE',
+          message: {
+            id: `m${Date.now()}-${messageCounter++}`,
+            matchId,
+            sender: 'you',
+            body: trimmed,
+            sentAt: Date.now(),
+          },
+        })
+      },
       answer: (gameId, qIndex, optIndex) =>
         dispatch({ type: 'ANSWER', gameId, qIndex, optIndex }),
       timeout: (gameId, qIndex) => dispatch({ type: 'TIMEOUT', gameId, qIndex }),

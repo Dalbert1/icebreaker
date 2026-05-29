@@ -6,6 +6,7 @@ import { PROFILES } from '../data/profiles'
 import { CATEGORIES } from '../data/mockQuestions'
 import type { GameSession, Profile, TriviaCategory } from '../types'
 import { GradientPortrait } from '../components/GradientPortrait'
+import { ThawReveal } from '../components/ThawReveal'
 import { ThawBar } from '../components/ui'
 
 type Phase = 'category' | 'playing' | 'wantchat'
@@ -26,6 +27,9 @@ export function Game() {
   const [qIndex, setQIndex] = useState(0)
   const [picked, setPicked] = useState<number | null>(null)
   const [loading, setLoading] = useState(false)
+  // The full-thaw "money shot": set to the pre-completion thaw when a round
+  // breaks the ice completely, then cleared once the reveal is dismissed.
+  const [revealFrom, setRevealFrom] = useState<number | null>(null)
 
   const game = state.games.find((g) => g.id === gameId) ?? null
 
@@ -53,9 +57,13 @@ export function Game() {
 
   // live thaw: existing thaw + progress through this round
   const answered = game ? game.userAnswers.filter((a) => a >= 0).length : 0
-  const liveThaw = game
-    ? Math.min(1, match.thaw + (answered / game.questions.length) * 0.5)
+  const rawLiveThaw = game
+    ? match.thaw + (answered / game.questions.length) * 0.5
     : match.thaw
+  // If this round will fully break the ice, hold a little frost back so the
+  // dramatic melt happens in ThawReveal instead of creeping clear in-game.
+  const willRevealThisRound = match.thaw < 1 && rawLiveThaw >= 1
+  const liveThaw = Math.min(willRevealThisRound ? 0.8 : 1, rawLiveThaw)
 
   return (
     <div className="flex h-full flex-col px-4">
@@ -102,7 +110,13 @@ export function Game() {
             }}
             onNext={() => {
               if (qIndex + 1 >= game.questions.length) {
+                // Does finishing this round break the ice completely?
+                const completed = state.games.filter(
+                  (g) => g.matchId === matchId && g.completedAt,
+                ).length
+                const nextThaw = Math.min(1, (completed + 1) * 0.5)
                 completeGame(game.id)
+                if (match.thaw < 1 && nextThaw >= 1) setRevealFrom(match.thaw)
                 setPhase('wantchat')
               } else {
                 setQIndex((i) => i + 1)
@@ -130,6 +144,14 @@ export function Game() {
           />
         )}
       </div>
+
+      {revealFrom !== null && (
+        <ThawReveal
+          profile={profile}
+          fromThaw={revealFrom}
+          onContinue={() => setRevealFrom(null)}
+        />
+      )}
     </div>
   )
 }

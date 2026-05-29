@@ -82,10 +82,42 @@ try {
   }
   await shot(page, '07-want-to-chat')
 
-  // Say "Chat now" -> chat screen.
+  // Say "Chat now" -> chat screen (shows conversation starters from the round).
   await page.getByRole('button', { name: 'Chat now' }).click()
   await page.waitForTimeout(400)
   await shot(page, '08-chat')
+
+  // Send a first message -> the thread renders it (local-only chat).
+  await page.getByPlaceholder('Type a message…').fill('That science one got us both 😅')
+  await page.getByRole('button', { name: 'Send' }).click()
+  await page.waitForTimeout(300)
+  await shot(page, '08b-chat-message')
+
+  // Play a SECOND icebreaker to fully break the ice -> the thaw reveal fires.
+  await page.getByRole('link', { name: /Play Icebreaker/ }).click()
+  await page.waitForTimeout(300)
+  await page.getByRole('button', { name: /Music/ }).click()
+  await page.waitForTimeout(300)
+  await page.locator('main button').nth(1).click()
+  await page.waitForTimeout(300)
+  for (let i = 0; i < 20; i++) {
+    const advance = page.getByRole('button', { name: /Next question|See results/ })
+    if (!(await advance.count())) break
+    const last = /See results/.test((await advance.textContent()) ?? '')
+    await advance.click()
+    await page.waitForTimeout(300)
+    if (last) break
+    await page.locator('main button').nth(1).click()
+    await page.waitForTimeout(300)
+  }
+  // Full-thaw "money shot" overlay (let the melt + shards settle).
+  await page.waitForTimeout(1700)
+  await shot(page, '08c-thaw-reveal')
+
+  // Dismiss the reveal -> fully-thawed results screen.
+  await page.getByRole('button', { name: /^Meet / }).click()
+  await page.waitForTimeout(400)
+  await shot(page, '08d-want-to-chat-thawed')
 
   // Matches list.
   await page.goto(`${BASE_URL}/matches`, { waitUntil: 'networkidle' })
