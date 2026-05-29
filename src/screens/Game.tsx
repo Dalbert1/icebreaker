@@ -82,7 +82,7 @@ export function Game() {
         </header>
       )}
 
-      <div className="flex flex-1 flex-col">
+      <div className="flex min-h-0 flex-1 flex-col">
         {phase === 'category' && <CategoryPicker loading={loading} onPick={pickCategory} />}
         {phase === 'playing' && game && (
           <PlayRound
@@ -150,25 +150,25 @@ function CategoryPicker({
     Geography: '🗺️',
   }
   return (
-    <div className="flex flex-1 flex-col">
-      <div className="py-2 text-center">
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div className="shrink-0 py-2 text-center">
         <h1 className="text-2xl">Pick an icebreaker</h1>
         <p className="text-sm text-frost/55">Seven questions. Every answer melts a little ice.</p>
       </div>
-      <div className="flex flex-1 items-center pb-10">
-        <div className="grid w-full grid-cols-2 gap-3">
-        {CATEGORIES.map((c) => (
-          <button
-            key={c}
-            disabled={loading}
-            onClick={() => onPick(c)}
-            className="glass flex aspect-square flex-col items-center justify-center gap-2 p-3 text-center transition-all hover:border-ice/40 active:scale-95 disabled:opacity-50"
-            style={{ borderRadius: '22px' }}
-          >
-            <span className="text-3xl">{icons[c]}</span>
-            <span className="text-sm font-medium text-frost/90">{c}</span>
-          </button>
-        ))}
+      <div className="no-scrollbar min-h-0 flex-1 overflow-y-auto pb-24 pt-3">
+        <div className="grid w-full grid-cols-2 gap-2.5 sm:gap-3">
+          {CATEGORIES.map((c) => (
+            <button
+              key={c}
+              disabled={loading}
+              onClick={() => onPick(c)}
+              className="glass flex min-h-32 flex-col items-center justify-center gap-2 p-3 text-center transition-all hover:border-ice/40 active:scale-95 disabled:opacity-50 min-[390px]:min-h-36 sm:aspect-square"
+              style={{ borderRadius: '22px' }}
+            >
+              <span className="text-2xl min-[390px]:text-3xl">{icons[c]}</span>
+              <span className="text-sm font-medium text-frost/90">{c}</span>
+            </button>
+          ))}
         </div>
       </div>
     </div>
