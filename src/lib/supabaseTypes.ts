@@ -17,7 +17,8 @@ export interface Database {
           bio: string
           vibes: string[]
           location_label: string | null
-          photo_url: string | null
+          location_geohash: string | null
+          is_discoverable: boolean
           onboarding_completed_at: string | null
           created_at: string
           updated_at: string
@@ -29,7 +30,8 @@ export interface Database {
           bio?: string
           vibes?: string[]
           location_label?: string | null
-          photo_url?: string | null
+          location_geohash?: string | null
+          is_discoverable?: boolean
           onboarding_completed_at?: string | null
           created_at?: string
           updated_at?: string
@@ -40,9 +42,34 @@ export interface Database {
           bio?: string
           vibes?: string[]
           location_label?: string | null
-          photo_url?: string | null
+          location_geohash?: string | null
+          is_discoverable?: boolean
           onboarding_completed_at?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      profile_photos: {
+        Row: {
+          id: string
+          profile_id: string
+          storage_path: string
+          sort_order: number
+          moderation_status: 'pending' | 'approved' | 'rejected'
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          profile_id: string
+          storage_path: string
+          sort_order?: number
+          moderation_status?: 'pending' | 'approved' | 'rejected'
+          created_at?: string
+        }
+        Update: {
+          storage_path?: string
+          sort_order?: number
+          moderation_status?: 'pending' | 'approved' | 'rejected'
         }
         Relationships: []
       }
@@ -50,17 +77,56 @@ export interface Database {
         Row: {
           profile_id: string
           interested_in: 'male' | 'female' | 'both'
+          age_min: number
+          age_max: number
+          distance_miles: number
+          category_preferences: string[]
           created_at: string
           updated_at: string
         }
         Insert: {
           profile_id: string
           interested_in: 'male' | 'female' | 'both'
+          age_min?: number
+          age_max?: number
+          distance_miles?: number
+          category_preferences?: string[]
           created_at?: string
           updated_at?: string
         }
         Update: {
           interested_in?: 'male' | 'female' | 'both'
+          age_min?: number
+          age_max?: number
+          distance_miles?: number
+          category_preferences?: string[]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profile_prompts: {
+        Row: {
+          id: string
+          profile_id: string
+          question: string
+          answer: string
+          sort_order: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          profile_id: string
+          question: string
+          answer: string
+          sort_order?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          question?: string
+          answer?: string
+          sort_order?: number
           updated_at?: string
         }
         Relationships: []
@@ -213,7 +279,48 @@ export interface Database {
         Relationships: []
       }
     }
-    Views: Record<string, never>
+    Views: {
+      public_profiles: {
+        Row: {
+          id: string | null
+          display_name: string | null
+          bio: string | null
+          vibes: string[] | null
+          location_label: string | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: never
+        Update: never
+        Relationships: []
+      }
+      public_profile_photos: {
+        Row: {
+          id: string | null
+          profile_id: string | null
+          storage_path: string | null
+          sort_order: number | null
+          created_at: string | null
+        }
+        Insert: never
+        Update: never
+        Relationships: []
+      }
+      public_profile_prompts: {
+        Row: {
+          id: string | null
+          profile_id: string | null
+          question: string | null
+          answer: string | null
+          sort_order: number | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: never
+        Update: never
+        Relationships: []
+      }
+    }
     Functions: Record<string, never>
     Enums: Record<string, never>
     CompositeTypes: Record<string, never>

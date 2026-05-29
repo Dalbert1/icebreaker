@@ -10,17 +10,44 @@ create table if not exists public.profiles (
   bio text not null default '',
   vibes text[] not null default '{}',
   location_label text,
-  photo_url text,
+  location_geohash text,
+  is_discoverable boolean not null default false,
   onboarding_completed_at timestamptz,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
 
+create table if not exists public.profile_photos (
+  id uuid primary key default gen_random_uuid(),
+  profile_id uuid not null references public.profiles(id) on delete cascade,
+  storage_path text not null,
+  sort_order integer not null default 0 check (sort_order >= 0),
+  moderation_status text not null default 'pending' check (moderation_status in ('pending', 'approved', 'rejected')),
+  created_at timestamptz not null default now(),
+  unique (profile_id, sort_order),
+  unique (storage_path)
+);
+
 create table if not exists public.profile_preferences (
   profile_id uuid primary key references public.profiles(id) on delete cascade,
   interested_in text not null check (interested_in in ('male', 'female', 'both')),
+  age_min integer not null default 18 check (age_min >= 18),
+  age_max integer not null default 99 check (age_max >= age_min),
+  distance_miles integer not null default 25 check (distance_miles > 0),
+  category_preferences text[] not null default '{}',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
+);
+
+create table if not exists public.profile_prompts (
+  id uuid primary key default gen_random_uuid(),
+  profile_id uuid not null references public.profiles(id) on delete cascade,
+  question text not null,
+  answer text not null,
+  sort_order integer not null default 0 check (sort_order >= 0),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (profile_id, sort_order)
 );
 
 create table if not exists public.swipes (
@@ -84,17 +111,63 @@ create table if not exists public.match_scoreboards (
 );
 
 alter table public.profiles enable row level security;
+alter table public.profile_photos enable row level security;
 alter table public.profile_preferences enable row level security;
+alter table public.profile_prompts enable row level security;
 alter table public.swipes enable row level security;
 alter table public.matches enable row level security;
 alter table public.games enable row level security;
 alter table public.game_answers enable row level security;
 alter table public.match_scoreboards enable row level security;
 
-create policy "profiles are readable by signed-in users"
+create or replace view public.public_profiles as
+select
+  id,
+  display_name,
+  bio,
+  vibes,
+  location_label,
+  created_at,
+  updated_at
+from public.profiles
+where is_discoverable = true
+  and onboarding_completed_at is not null;
+
+create or replace view public.public_profile_photos as
+select
+  pp.id,
+  pp.profile_id,
+  pp.storage_path,
+  pp.sort_order,
+  pp.created_at
+from public.profile_photos pp
+join public.profiles p on p.id = pp.profile_id
+where p.is_discoverable = true
+  and p.onboarding_completed_at is not null
+  and pp.moderation_status = 'approved';
+
+create or replace view public.public_profile_prompts as
+select
+  pr.id,
+  pr.profile_id,
+  pr.question,
+  pr.answer,
+  pr.sort_order,
+  pr.created_at,
+  pr.updated_at
+from public.profile_prompts pr
+join public.profiles p on p.id = pr.profile_id
+where p.is_discoverable = true
+  and p.onboarding_completed_at is not null;
+
+grant select on public.public_profiles to authenticated;
+grant select on public.public_profile_photos to authenticated;
+grant select on public.public_profile_prompts to authenticated;
+
+create policy "users read own profile"
   on public.profiles for select
   to authenticated
-  using (true);
+  using (id = auth.uid());
 
 create policy "users insert own profile"
   on public.profiles for insert
@@ -107,8 +180,35 @@ create policy "users update own profile"
   using (id = auth.uid())
   with check (id = auth.uid());
 
+create policy "users read own profile photos"
+  on public.profile_photos for select
+  to authenticated
+  using (profile_id = auth.uid());
+
+create policy "users insert pending own profile photos"
+  on public.profile_photos for insert
+  to authenticated
+  with check (profile_id = auth.uid() and moderation_status = 'pending');
+
+create policy "users update pending own profile photos"
+  on public.profile_photos for update
+  to authenticated
+  using (profile_id = auth.uid())
+  with check (profile_id = auth.uid() and moderation_status = 'pending');
+
+create policy "users delete own profile photos"
+  on public.profile_photos for delete
+  to authenticated
+  using (profile_id = auth.uid());
+
 create policy "users manage own preferences"
   on public.profile_preferences for all
+  to authenticated
+  using (profile_id = auth.uid())
+  with check (profile_id = auth.uid());
+
+create policy "users manage own profile prompts"
+  on public.profile_prompts for all
   to authenticated
   using (profile_id = auth.uid())
   with check (profile_id = auth.uid());
