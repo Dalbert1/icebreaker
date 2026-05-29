@@ -9,6 +9,7 @@ import {
 import type { GameSession, Match, Message, Question, TriviaCategory } from '../types'
 import { PROFILES } from '../data/profiles'
 import { questionProvider } from './questionProvider'
+import { generatePersonalQuestions, PERSONAL_CATEGORY } from './personalQuestions'
 import { thawForGames } from './thaw'
 import { authRedirectTo, isSupabaseConfigured, supabase } from './supabase'
 
@@ -206,6 +207,8 @@ interface Store {
   dismissMatch: () => void
   sendMessage: (matchId: string, body: string) => void
   startGame: (matchId: string, category: TriviaCategory) => Promise<string>
+  /** Start the personal "About {Name}" round, built from the match's profile. */
+  startPersonalGame: (matchId: string) => Promise<string>
   answer: (gameId: string, qIndex: number, optIndex: number) => void
   timeout: (gameId: string, qIndex: number) => void
   completeGame: (gameId: string) => void
@@ -390,6 +393,25 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           id,
           matchId,
           category,
+          questions,
+          userAnswers: new Array(questions.length).fill(-1),
+          timedOut: new Array(questions.length).fill(false),
+          matchAnswers: simulateMatchAnswers(questions, seed),
+          startedAt: Date.now(),
+        }
+        dispatch({ type: 'ADD_GAME', game })
+        return id
+      },
+      startPersonalGame: async (matchId) => {
+        const profile = PROFILES.find((p) => p.id === matchId)
+        const questions = profile ? generatePersonalQuestions(profile, matchId) : []
+        const id = `g${Date.now()}-${gameCounter++}`
+        const seed = Array.from(id).reduce((h, c) => (h * 31 + c.charCodeAt(0)) | 0, 7)
+        const game: GameSession = {
+          id,
+          matchId,
+          category: PERSONAL_CATEGORY,
+          aboutName: profile?.name,
           questions,
           userAnswers: new Array(questions.length).fill(-1),
           timedOut: new Array(questions.length).fill(false),

@@ -10,6 +10,7 @@ import { ThawReveal } from '../components/ThawReveal'
 import { ThawBar } from '../components/ui'
 import { crossesFullThaw, liveThaw as computeLiveThaw, revealedName } from '../lib/thaw'
 import { scoreGame, syncLevel } from '../lib/score'
+import { personalCategoryLabel } from '../lib/personalQuestions'
 
 type Phase = 'category' | 'playing' | 'wantchat'
 const QUESTION_SECONDS = 15
@@ -17,7 +18,7 @@ const QUESTION_SECONDS = 15
 export function Game() {
   const { matchId = '' } = useParams()
   const navigate = useNavigate()
-  const { state, startGame, answer, timeout, completeGame, unmatch } = useStore()
+  const { state, startGame, startPersonalGame, answer, timeout, completeGame, unmatch } = useStore()
 
   const profile = PROFILES.find((p) => p.id === matchId)
   const match = state.matches.find((m) => m.profileId === matchId)
@@ -50,6 +51,16 @@ export function Game() {
   async function pickCategory(category: TriviaCategory) {
     setLoading(true)
     const id = await startGame(matchId, category)
+    setGameId(id)
+    setQIndex(0)
+    setPicked(null)
+    setPhase('playing')
+    setLoading(false)
+  }
+
+  async function pickPersonal() {
+    setLoading(true)
+    const id = await startPersonalGame(matchId)
     setGameId(id)
     setQIndex(0)
     setPicked(null)
@@ -90,7 +101,17 @@ export function Game() {
       )}
 
       <div className="flex min-h-0 flex-1 flex-col">
-        {phase === 'category' && <CategoryPicker loading={loading} onPick={pickCategory} />}
+        {phase === 'category' && (
+          <CategoryPicker
+            loading={loading}
+            onPick={pickCategory}
+            personalName={profile.profileAnswers ? profile.name : null}
+            personalPlayed={state.games.some(
+              (g) => g.matchId === matchId && g.category === 'Personal' && g.completedAt,
+            )}
+            onPickPersonal={pickPersonal}
+          />
+        )}
         {phase === 'playing' && game && (
           <PlayRound
             key={`${game.id}-${qIndex}`}
@@ -157,9 +178,16 @@ export function Game() {
 function CategoryPicker({
   onPick,
   loading,
+  personalName,
+  personalPlayed,
+  onPickPersonal,
 }: {
   onPick: (c: TriviaCategory) => void
   loading: boolean
+  /** Match's name when a personal "About {Name}" round is available, else null. */
+  personalName: string | null
+  personalPlayed: boolean
+  onPickPersonal: () => void
 }) {
   const icons: Record<TriviaCategory, string> = {
     'General Knowledge': '🧠',
@@ -176,6 +204,31 @@ function CategoryPicker({
         <p className="text-sm text-frost/55">Seven questions. Every answer melts a little ice.</p>
       </div>
       <div className="no-scrollbar min-h-0 flex-1 overflow-y-auto pb-24 pt-3">
+        {personalName && (
+          <button
+            disabled={loading}
+            onClick={onPickPersonal}
+            className="bg-thaw mb-3 flex w-full items-center gap-3 p-0.5 text-left transition-all active:scale-[0.99] disabled:opacity-50"
+            style={{ borderRadius: '22px' }}
+          >
+            <span className="flex w-full items-center gap-3 rounded-[20px] bg-abyss/55 px-4 py-3.5">
+              <span className="text-3xl">❄️</span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-base font-semibold text-frost">
+                  {personalCategoryLabel(personalName)}
+                </span>
+                <span className="block text-xs text-frost/70">
+                  {personalPlayed
+                    ? 'Play again — questions from their profile'
+                    : 'Questions from their profile. Learn who they really are.'}
+                </span>
+              </span>
+              {personalPlayed && (
+                <span className="rounded-full bg-frost/15 px-2 py-0.5 text-[10px] text-ice">Played</span>
+              )}
+            </span>
+          </button>
+        )}
         <div className="grid w-full grid-cols-2 gap-2.5 sm:gap-3">
           {CATEGORIES.map((c) => (
             <button
@@ -238,7 +291,11 @@ function PlayRound({
   return (
     <div className="flex flex-1 flex-col">
       <div className="flex items-center justify-between py-1 text-xs text-frost/45">
-        <span className="uppercase tracking-wider text-amber/80">{q.category}</span>
+        <span className="uppercase tracking-wider text-amber/80">
+          {game.category === 'Personal' && game.aboutName
+            ? personalCategoryLabel(game.aboutName)
+            : q.category}
+        </span>
         <div className="flex items-center gap-2">
           <span className={timerTone}>{remaining}s</span>
           <span>

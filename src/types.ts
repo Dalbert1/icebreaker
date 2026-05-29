@@ -28,6 +28,13 @@ export interface Profile {
   gradient: [string, string]
   /** A prompt + answer, dating-app style. */
   prompt: { question: string; answer: string }
+  /**
+   * Answers to the 7 personal-profile questions, used to build the "About
+   * {Name}" icebreaker game. Optional so a profile can exist without them
+   * (the personal category simply won't appear). Kept out of the public
+   * Discover surface — only revealed through play once matched.
+   */
+  profileAnswers?: Partial<Record<ProfileQuestionKey, string>>
 }
 
 export type TriviaCategory =
@@ -38,9 +45,27 @@ export type TriviaCategory =
   | 'Science'
   | 'Geography'
 
+/**
+ * A game's category is either one of the generic trivia categories or the
+ * per-match **personal** icebreaker ("About {Name}"), whose questions are built
+ * from the matched profile's own answers. `.category` is used only as a display
+ * label, so widening it here doesn't affect the trivia providers.
+ */
+export type GameCategory = TriviaCategory | 'Personal'
+
+/** Keys for the 7 personal-profile answers that seed the "About {Name}" game. */
+export type ProfileQuestionKey =
+  | 'favoriteFood'
+  | 'firstDate'
+  | 'sundayMorning'
+  | 'greenFlag'
+  | 'bingeGenre'
+  | 'loveLanguage'
+  | 'travelMustHave'
+
 export interface Question {
   id: string
-  category: TriviaCategory
+  category: GameCategory
   prompt: string
   /** Shuffled answer options including the correct one. */
   options: string[]
@@ -55,7 +80,9 @@ export interface Question {
 export interface GameSession {
   id: string
   matchId: string
-  category: TriviaCategory
+  category: GameCategory
+  /** For a personal ("About {Name}") game, the match's display name. */
+  aboutName?: string
   questions: Question[]
   /** Index into options the user picked, per question (-1 = unanswered). */
   userAnswers: number[]

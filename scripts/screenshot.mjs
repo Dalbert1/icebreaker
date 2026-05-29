@@ -60,8 +60,10 @@ try {
   await page.waitForTimeout(400)
   await shot(page, '04-game-category')
 
-  // Pick an icebreaker (category) -> first question.
-  await page.getByRole('button', { name: /General Knowledge/ }).click()
+  // Play the personal "About {Name}" round first (pinned at the top of the
+  // picker) -> first question. Exercises the personal-icebreaker feature
+  // end-to-end; the second game below uses a regular trivia category.
+  await page.getByRole('button', { name: /About / }).click()
   await shot(page, '05-game-question')
 
   // Answer the first question -> feedback state.

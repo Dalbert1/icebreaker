@@ -44,13 +44,17 @@ export function conversationStartersFor(
   const inSync = inSyncRight >= 0 ? inSyncRight : inSyncAny
   if (inSync >= 0) {
     starters.push(
-      `We answered the ${game.category} one exactly the same — clearly the start of something. 🧊`,
+      game.category === 'Personal'
+        ? `Okay, I clearly know you better than I thought — we lined up on that one. 🧊`
+        : `We answered the ${game.category} one exactly the same — clearly the start of something. 🧊`,
     )
   }
 
   // 3. Category hook.
   starters.push(
-    `That ${game.category} round was a vibe. Rematch, or are you scared, ${name}? 😏`,
+    game.category === 'Personal'
+      ? `That "About ${name}" round taught me things. Did I pass? 😏`
+      : `That ${game.category} round was a vibe. Rematch, or are you scared, ${name}? 😏`,
   )
 
   // 4. Warm fallback (only surfaces if we somehow have <1 above).
