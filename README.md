@@ -184,13 +184,9 @@ Have **Claude Code start with `icebreaker-29f`** because it is coordination
 hygiene: sync `CLAUDE.md` and `AGENTS.md`. That prevents future agents from
 reading different instructions.
 
-Have **me start with `icebreaker-b6w`** next because it finishes the migration
-from `TODO.md` into Beads and reduces duplicate task tracking:
-
-```bash
-bd show icebreaker-b6w
-bd update icebreaker-b6w --claim
-```
+The `icebreaker-b6w` migration is **done**: the old `TODO.md` backlog now
+lives entirely in Beads (`bd ready` / `bd list`) and the markdown file has been
+retired, so task tracking has a single source of truth.
 
 After that, split the actual product work:
 
