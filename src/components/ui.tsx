@@ -11,8 +11,8 @@ export function Wordmark({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
         <defs>
           <linearGradient id="wm" x1="8" y1="6" x2="56" y2="58" gradientUnits="userSpaceOnUse">
             <stop stopColor="#5ed3ff" />
-            <stop offset="0.6" stopColor="#ff8e72" />
-            <stop offset="1" stopColor="#ffb454" />
+            <stop offset="0.55" stopColor="#9d8cff" />
+            <stop offset="1" stopColor="#ffc97a" />
           </linearGradient>
         </defs>
         <path d="M32 6 L54 26 L41 58 L23 58 L10 26 Z" stroke="url(#wm)" strokeWidth="3" strokeLinejoin="round" />

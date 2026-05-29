@@ -152,9 +152,13 @@ IDEAS.md        informal feature ideas scratchpad
 
 - Mobile-first. The app renders in a centered max-w-[460px] "device" column;
   it must look right at 390px wide. Respect safe-area insets on the bottom nav.
-- Theme tokens only — use the palette/utilities from `src/index.css`
-  (`bg-thaw`, `text-thaw`, `glass`, colors `frost/ice/glacial/teal/ember/coral/
-  amber/abyss/midnight/glacier`). Don't hardcode off-palette colors.
+- Theme is **"frozen palace"** (Elsa's-ice-palace-at-night): deep blue-violet
+  sky, crystalline cyan + aurora violet magic, soft rose/amber warmth as the
+  "thaw." Theme tokens only — use the palette/utilities from `src/index.css`
+  (`bg-thaw`, `text-thaw`, `glass`, colors `frost/ice/glacial/teal/aurora/
+  periwinkle/ember/coral/amber/blush/abyss/midnight/glacier`). The signature
+  thaw gradient runs cold cyan → aurora violet → warm glow. Don't hardcode
+  off-palette colors.
 - Fonts: display = Fraunces, body = Hanken Grotesk (loaded in `index.html`).
 - `GradientPortrait` sizing: pass size via `className` (e.g. `h-24 w-24`) or wrap
   it in a sized/positioned container — do **not** pass `absolute inset-0`

@@ -8,6 +8,7 @@ import type { GameSession, Profile, TriviaCategory } from '../types'
 import { GradientPortrait } from '../components/GradientPortrait'
 import { ThawReveal } from '../components/ThawReveal'
 import { ThawBar } from '../components/ui'
+import { crossesFullThaw, liveThaw as computeLiveThaw, revealedName } from '../lib/thaw'
 
 type Phase = 'category' | 'playing' | 'wantchat'
 const QUESTION_SECONDS = 15
@@ -55,15 +56,12 @@ export function Game() {
     setLoading(false)
   }
 
-  // live thaw: existing thaw + progress through this round
+  // live thaw: existing thaw + progress through this round (held back in the
+  // round that will fully break the ice, so the melt lands in ThawReveal).
   const answered = game ? game.userAnswers.filter((a) => a >= 0).length : 0
-  const rawLiveThaw = game
-    ? match.thaw + (answered / game.questions.length) * 0.5
+  const liveThaw = game
+    ? computeLiveThaw(match.thaw, answered, game.questions.length)
     : match.thaw
-  // If this round will fully break the ice, hold a little frost back so the
-  // dramatic melt happens in ThawReveal instead of creeping clear in-game.
-  const willRevealThisRound = match.thaw < 1 && rawLiveThaw >= 1
-  const liveThaw = Math.min(willRevealThisRound ? 0.8 : 1, rawLiveThaw)
 
   return (
     <div className="flex h-full flex-col px-4">
@@ -81,7 +79,7 @@ export function Game() {
           <GradientPortrait profile={profile} thaw={liveThaw} className="h-11 w-11 rounded-xl" />
           <div className="min-w-0 flex-1">
             <h2 className="truncate text-lg leading-tight text-frost">
-              {liveThaw >= 0.5 ? profile.name : `${profile.name.charAt(0)}······`}
+              {revealedName(profile.name, liveThaw)}
             </h2>
             <div className="mt-0.5">
               <ThawBar thaw={liveThaw} showLabel={false} />
@@ -114,9 +112,8 @@ export function Game() {
                 const completed = state.games.filter(
                   (g) => g.matchId === matchId && g.completedAt,
                 ).length
-                const nextThaw = Math.min(1, (completed + 1) * 0.5)
                 completeGame(game.id)
-                if (match.thaw < 1 && nextThaw >= 1) setRevealFrom(match.thaw)
+                if (crossesFullThaw(match.thaw, completed)) setRevealFrom(match.thaw)
                 setPhase('wantchat')
               } else {
                 setQIndex((i) => i + 1)

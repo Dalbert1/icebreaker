@@ -9,6 +9,7 @@ import {
 import type { GameSession, Match, Message, Question, TriviaCategory } from '../types'
 import { PROFILES } from '../data/profiles'
 import { questionProvider } from './questionProvider'
+import { thawForGames } from './thaw'
 import { authRedirectTo, isSupabaseConfigured, supabase } from './supabase'
 
 export type GenderPreference = 'male' | 'female' | 'both'
@@ -90,14 +91,13 @@ function load(): State {
 }
 
 /**
- * Derive how "thawed" a match is from completed games (0..1). Breaking the ice
- * is about playing *together*, not being right — so each completed round thaws
- * by a fixed amount (two rounds fully break the ice). This keeps the persisted
- * thaw consistent with the in-game live thaw (which tracks questions answered).
+ * Derive how "thawed" a match is from completed games (0..1). The thaw rate and
+ * thresholds live in `lib/thaw.ts` so the persisted thaw, the in-game live thaw,
+ * and the reveal all stay consistent.
  */
 function thawFor(matchId: string, games: GameSession[]): number {
   const played = games.filter((g) => g.matchId === matchId && g.completedAt)
-  return Math.min(1, played.length * 0.5)
+  return thawForGames(played.length)
 }
 
 function reducer(state: State, action: Action): State {

@@ -23,9 +23,10 @@ dreaded "hey" with a shared, low-stakes trivia game. Getting questions *right*
 isn't the point; **playing together is** — so answering rounds is what "breaks
 the ice," thaws your match's portrait, and unlocks more of their profile.
 
-Design language is **"polar dusk"**: a dark glacial backdrop, aurora glows, and
-frosted glass, with a signature gradient running from **cold cyan → warm ember**
-— the visual story of ice turning to warmth as a connection forms.
+Design language is **"frozen palace"**: a deep blue-violet winter sky with
+aurora glows, drifting snow, and frosted glass, with a signature gradient
+running from **cold cyan → aurora violet → warm glow** — the visual story of a
+frozen heart melting as a connection forms.
 
 Goals, in order:
 
