@@ -45,12 +45,12 @@ export function ProfileCard({ profile }: { profile: Profile }) {
           {profile.location}
         </div>
 
-        <p className="mt-3 text-sm leading-relaxed text-frost/85">{profile.bio}</p>
-
-        <div className="mt-3 rounded-2xl border border-frost/10 bg-frost/5 p-3">
+        <div className="mt-3 rounded-2xl border border-amber/30 bg-amber/8 p-3">
           <p className="text-[11px] uppercase tracking-wider text-amber/80">{profile.prompt.question}</p>
-          <p className="mt-0.5 text-sm text-frost/90">{profile.prompt.answer}</p>
+          <p className="mt-0.5 text-sm text-frost">{profile.prompt.answer}</p>
         </div>
+
+        <p className="mt-2.5 line-clamp-2 text-sm leading-relaxed text-frost/75">{profile.bio}</p>
 
         <div className="mt-3 flex flex-wrap gap-1.5">
           {profile.vibes.map((v) => (

@@ -33,11 +33,11 @@ export function Discover() {
         </div>
 
         {deck.length > 0 && (
-          <div className="mx-auto mt-4 flex shrink-0 items-center gap-5">
-            <ActionButton label="Frost" onClick={() => choose(deck[0].id, 'pass')} variant="pass">
+          <div className="mx-auto mt-4 flex shrink-0 items-center gap-6">
+            <ActionButton label="Pass" onClick={() => choose(deck[0].id, 'pass')} variant="pass">
               <path d="M18 6 6 18M6 6l12 12" />
             </ActionButton>
-            <ActionButton label="Thaw" onClick={() => choose(deck[0].id, 'like')} variant="like">
+            <ActionButton label="Like" onClick={() => choose(deck[0].id, 'like')} variant="like">
               <path d="M12 20s-7-4.35-7-9a4 4 0 0 1 7-2.65A4 4 0 0 1 19 11c0 4.65-7 9-7 9Z" />
             </ActionButton>
           </div>
@@ -66,15 +66,19 @@ function ActionButton({
     variant === 'like'
       ? 'border-ember/50 text-ember hover:bg-ember/10'
       : 'border-glacial/40 text-glacial hover:bg-glacial/10'
+  const labelColor = variant === 'like' ? 'text-ember/70' : 'text-glacial/70'
   return (
-    <button
-      onClick={onClick}
-      aria-label={label}
-      className={`glass flex h-16 w-16 items-center justify-center rounded-full border-2 ${ring} transition-all active:scale-90`}
-    >
-      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-        {children}
-      </svg>
-    </button>
+    <div className="flex flex-col items-center gap-1.5">
+      <button
+        onClick={onClick}
+        aria-label={label}
+        className={`glass flex h-16 w-16 items-center justify-center rounded-full border-2 ${ring} transition-all active:scale-90`}
+      >
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          {children}
+        </svg>
+      </button>
+      <span className={`text-[11px] font-medium uppercase tracking-wider ${labelColor}`}>{label}</span>
+    </div>
   )
 }
