@@ -21,6 +21,8 @@ export interface ProfileQuestionDef {
   key: ProfileQuestionKey
   /** The question as shown in-game, given the match's name. */
   gamePrompt: (name: string) => string
+  /** Short human-readable label for post-game "what you learned" panels. */
+  learnedLabel: string
   kind: 'text' | 'list'
   pool: string[]
 }
@@ -63,6 +65,7 @@ export const PROFILE_QUESTIONS: ProfileQuestionDef[] = [
   {
     key: 'favoriteFood',
     gamePrompt: (name) => `What's ${name}'s go-to dish?`,
+    learnedLabel: 'Favorite food',
     kind: 'text',
     pool: [
       'spicy tuna roll', 'chicken tikka masala', 'tacos al pastor', 'shakshuka',
@@ -75,12 +78,14 @@ export const PROFILE_QUESTIONS: ProfileQuestionDef[] = [
   {
     key: 'firstDate',
     gamePrompt: (name) => `${name}'s idea of a perfect first date?`,
+    learnedLabel: 'Dream first date',
     kind: 'list',
     pool: FIRST_DATE,
   },
   {
     key: 'sundayMorning',
     gamePrompt: (name) => `How does ${name} spend a perfect Sunday morning?`,
+    learnedLabel: 'Sunday morning vibe',
     kind: 'text',
     pool: [
       'sleeping in until noon', 'solo hike before breakfast', 'coffee shop with a book',
@@ -93,6 +98,7 @@ export const PROFILE_QUESTIONS: ProfileQuestionDef[] = [
   {
     key: 'greenFlag',
     gamePrompt: (name) => `${name}'s biggest green flag in a person?`,
+    learnedLabel: 'Biggest green flag',
     kind: 'text',
     pool: [
       'makes me laugh at myself', 'remembers small things I mentioned',
@@ -106,18 +112,21 @@ export const PROFILE_QUESTIONS: ProfileQuestionDef[] = [
   {
     key: 'bingeGenre',
     gamePrompt: (name) => `${name}'s favorite genre to binge?`,
+    learnedLabel: 'Binge genre',
     kind: 'list',
     pool: BINGE_GENRE,
   },
   {
     key: 'loveLanguage',
     gamePrompt: (name) => `${name}'s love language?`,
+    learnedLabel: 'Love language',
     kind: 'list',
     pool: LOVE_LANGUAGE,
   },
   {
     key: 'travelMustHave',
     gamePrompt: (name) => `One thing ${name} always travels with?`,
+    learnedLabel: 'Travel must-have',
     kind: 'text',
     pool: [
       'noise-canceling headphones', 'a physical book', 'my own pillow',

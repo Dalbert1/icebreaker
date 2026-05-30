@@ -10,7 +10,7 @@ import { ThawReveal } from '../components/ThawReveal'
 import { ThawBar } from '../components/ui'
 import { crossesFullThaw, liveThaw as computeLiveThaw, revealedName } from '../lib/thaw'
 import { scoreGame, syncLevel } from '../lib/score'
-import { personalCategoryLabel } from '../lib/personalQuestions'
+import { getLearnedFacts, personalCategoryLabel } from '../lib/personalQuestions'
 
 type Phase = 'category' | 'playing' | 'wantchat'
 const QUESTION_SECONDS = 15
@@ -425,9 +425,11 @@ function WantToChat({
   onUnmatch: () => void
 }) {
   const stats = useMemo(() => scoreGame(game), [game])
+  const isPersonal = game.category === 'Personal'
+  const learnedFacts = useMemo(() => isPersonal ? getLearnedFacts(game) : [], [game, isPersonal])
 
   return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-6 px-2 py-4 text-center">
+    <div className="no-scrollbar flex flex-1 flex-col items-center gap-5 overflow-y-auto px-2 py-4 text-center">
       <motion.div
         initial={{ scale: 0.7, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
@@ -437,7 +439,7 @@ function WantToChat({
         <GradientPortrait
           profile={profile}
           thaw={thaw}
-          className="h-32 w-32 rounded-3xl"
+          className="h-28 w-28 rounded-3xl"
         />
         <div>
           <p className="font-display text-sm uppercase tracking-[0.3em] text-ice/70">Ice broken</p>
@@ -450,7 +452,7 @@ function WantToChat({
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.25 }}
+        transition={{ delay: 0.2 }}
         className="grid w-full max-w-xs grid-cols-3 gap-2"
       >
         <Stat label="You" value={`${stats.yours}/${stats.total}`} />
@@ -458,10 +460,37 @@ function WantToChat({
         <Stat label="In sync" value={`${stats.agreed}/${stats.total}`} accent />
       </motion.div>
 
+      {isPersonal && learnedFacts.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.28 }}
+          className="glass w-full max-w-xs p-4 text-left"
+          style={{ borderRadius: '22px' }}
+        >
+          <p className="mb-3 text-center text-xs font-semibold uppercase tracking-widest text-ice/60">
+            What you learned about {profile.name}
+          </p>
+          <div className="flex flex-col gap-2">
+            {learnedFacts.map((fact) => (
+              <div key={fact.label} className="flex items-start gap-2.5">
+                <span className={`mt-0.5 text-xs ${fact.gotIt ? 'text-teal' : 'text-frost/35'}`}>
+                  {fact.gotIt ? '✓' : '·'}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <span className="text-xs text-frost/50">{fact.label} — </span>
+                  <span className="text-sm text-frost/90">{fact.answer}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+      )}
+
       <motion.p
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.3 }}
+        transition={{ delay: 0.35 }}
         className="max-w-xs text-sm text-frost/65"
       >
         {syncLevel(stats) === 'in-sync'
@@ -474,8 +503,8 @@ function WantToChat({
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.35 }}
-        className="flex w-full max-w-xs flex-col gap-3"
+        transition={{ delay: 0.4 }}
+        className="flex w-full max-w-xs flex-col gap-3 pb-4"
       >
         <button
           onClick={onYes}

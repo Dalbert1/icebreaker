@@ -1,4 +1,4 @@
-import type { GameCategory, Profile, Question } from '../types'
+import type { GameCategory, GameSession, Profile, Question } from '../types'
 import { PROFILE_QUESTIONS } from '../data/profileQuestions'
 
 /** The category marker for a personal ("About {Name}") icebreaker game. */
@@ -53,6 +53,25 @@ const norm = (s: string) => s.trim().toLowerCase()
  * Returns [] if the profile has no `profileAnswers` (the personal category then
  * simply doesn't appear). Questions with a missing answer are skipped.
  */
+/**
+ * Derives the "what you learned" facts from a completed personal game.
+ * Each fact pairs the question's short label with the match's real answer and
+ * whether the user got it right.
+ */
+export function getLearnedFacts(
+  game: GameSession,
+): { label: string; answer: string; gotIt: boolean }[] {
+  const defByKey = Object.fromEntries(PROFILE_QUESTIONS.map((d) => [d.key, d]))
+  return game.questions.map((q, i) => {
+    // Personal question ids are "personal-{matchId}-{key}"
+    const key = q.id.split('-').slice(2).join('-')
+    const def = defByKey[key]
+    const answer = q.options[q.correctIndex]
+    const gotIt = game.userAnswers[i] === q.correctIndex
+    return { label: def?.learnedLabel ?? key, answer, gotIt }
+  })
+}
+
 export function generatePersonalQuestions(profile: Profile, matchId: string): Question[] {
   const answers = profile.profileAnswers
   if (!answers) return []
