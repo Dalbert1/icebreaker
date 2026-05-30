@@ -62,25 +62,18 @@ try {
   await page.getByRole('button', { name: 'Cancel' }).click()
   await page.waitForTimeout(150)
 
-  // Break the ice -> first game. New matches with profile answers auto-start
-  // the personal "About {Name}" round; older/fallback states may show the
-  // category picker first.
+  // Break the ice -> game screen. The first visit auto-starts the personal
+  // "About {Name}" round immediately (no category picker step needed).
   await page.getByRole('button', { name: 'Break the ice' }).click()
-  await page.waitForTimeout(400)
-  await shot(page, '04-game-category')
-
-  // Exercise the personal-icebreaker feature end-to-end; click the pinned
-  // personal category only when the picker is present.
-  const aboutButton = page.getByRole('button', { name: /About / })
-  if (await aboutButton.count()) await aboutButton.click()
-  await shot(page, '05-game-question')
+  await page.waitForTimeout(600)
+  await shot(page, '04-game-question')
 
   // Answer the first question -> feedback state.
   await page.locator('main button').nth(1).click()
   await page.waitForTimeout(350)
-  await shot(page, '06-game-feedback')
+  await shot(page, '05-game-feedback')
 
-  // Play through the remaining questions to reach "Want to chat?" screen.
+  // Play through the remaining questions to reach the end of the personal round.
   for (let i = 0; i < 20; i++) {
     const advance = page.getByRole('button', { name: /Next question|See results/ })
     if (!(await advance.count())) break
@@ -91,18 +84,17 @@ try {
     await page.locator('main button').nth(1).click()
     await page.waitForTimeout(300)
   }
-  await shot(page, '07-want-to-chat')
 
-  // First icebreaker now fully breaks the ice. Capture and dismiss the reveal
-  // if it appears before continuing to chat.
+  // With THAW_PER_GAME = 1.0 the first game fully breaks the ice, so ThawReveal
+  // fires immediately. Wait for the melt + shard burst to settle, then grab the
+  // money shot before dismissing.
   await page.waitForTimeout(1700)
-  const meetButton = page.getByRole('button', { name: /^Meet / })
-  if (await meetButton.count()) {
-    await shot(page, '08c-thaw-reveal')
-    await meetButton.click()
-    await page.waitForTimeout(400)
-    await shot(page, '08d-want-to-chat-thawed')
-  }
+  await shot(page, '06-thaw-reveal')
+
+  // Dismiss the reveal -> WantToChat with "What you learned about {Name}" panel.
+  await page.getByRole('button', { name: /^Meet / }).click()
+  await page.waitForTimeout(400)
+  await shot(page, '07-want-to-chat')
 
   // Say "Chat now" -> chat screen (shows conversation starters from the round).
   await page.getByRole('button', { name: 'Chat now' }).click()
@@ -125,11 +117,36 @@ try {
   await page.getByRole('button', { name: 'Cancel' }).click()
   await page.waitForTimeout(200)
 
-  // Replay -> category picker now shows the personal round in its "Played"
-  // state (and a revealed name, since the ice is fully broken).
+  // Play a second icebreaker from the chat footer. This time the category picker
+  // shows normally (auto-start only fires for the very first game) and the personal
+  // round is marked "Played".
   await page.getByRole('link', { name: /Play Icebreaker/ }).click()
   await page.waitForTimeout(300)
-  await shot(page, '08g-personal-played')
+  await shot(page, '08g-category-picker')
+
+  // Pick Music and play through.
+  await page.getByRole('button', { name: /Music/ }).click()
+  await page.waitForTimeout(300)
+  await page.locator('main button').nth(1).click()
+  await page.waitForTimeout(300)
+  for (let i = 0; i < 20; i++) {
+    const advance = page.getByRole('button', { name: /Next question|See results/ })
+    if (!(await advance.count())) break
+    const last = /See results/.test((await advance.textContent()) ?? '')
+    await advance.click()
+    await page.waitForTimeout(300)
+    if (last) break
+    await page.locator('main button').nth(1).click()
+    await page.waitForTimeout(300)
+  }
+  // Match is already fully thawed — no ThawReveal fires for the second round.
+  await page.waitForTimeout(500)
+  await shot(page, '08c-second-game-results')
+
+  // Replay -> category picker (all categories available, personal still "Played").
+  await page.getByRole('button', { name: 'Play another game' }).click()
+  await page.waitForTimeout(300)
+  await shot(page, '08d-replay-picker')
 
   // Matches list.
   await page.goto(`${BASE_URL}/matches`, { waitUntil: 'networkidle' })

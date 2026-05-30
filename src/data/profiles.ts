@@ -277,7 +277,7 @@ export const ME: Profile = {
   id: 'me',
   name: 'You',
   age: 28,
-  gender: 'male',
+  gender: 'female',
   location: 'Tulsa, OK',
   bio: 'Just here to break the ice. Ask me anything — preferably in trivia form.',
   vibes: ['Foodie', 'Traveler', 'Gamer'],

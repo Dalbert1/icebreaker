@@ -100,13 +100,13 @@ function DeckCard({
             style={{ opacity: likeOpacity }}
             className="pointer-events-none absolute left-5 top-6 -rotate-12 rounded-xl border-2 border-teal px-4 py-1.5 text-xl font-bold uppercase tracking-widest text-teal"
           >
-            Thaw
+            Like
           </motion.div>
           <motion.div
             style={{ opacity: passOpacity }}
             className="pointer-events-none absolute right-5 top-6 rotate-12 rounded-xl border-2 border-glacial px-4 py-1.5 text-xl font-bold uppercase tracking-widest text-glacial"
           >
-            Frost
+            Pass
           </motion.div>
         </>
       )}
