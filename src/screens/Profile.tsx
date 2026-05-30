@@ -36,7 +36,7 @@ export function Profile() {
       <div className="mt-3 grid grid-cols-3 gap-2">
         <StatCard value={state.matches.length} label="Matches" />
         <StatCard value={roundsPlayed} label="Rounds" />
-        <StatCard value={state.liked.length} label="Thawed" />
+        <StatCard value={state.liked.length} label="Liked" />
       </div>
 
       <Glass className="mt-3 p-4">

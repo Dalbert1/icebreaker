@@ -22,7 +22,7 @@ export function Matches() {
           <div className="text-5xl">🧊</div>
           <h3 className="text-xl text-frost">No matches yet</h3>
           <p className="max-w-xs text-sm text-frost/55">
-            Head to Discover and thaw a few profiles. Mutual likes show up here.
+            Head to Discover and swipe right on someone you'd want to meet.
           </p>
           <Link
             to="/discover"

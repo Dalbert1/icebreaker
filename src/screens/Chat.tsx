@@ -16,6 +16,13 @@ export function Chat() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [confirming, setConfirming] = useState<'report' | 'unmatch' | null>(null)
   const [typing, setTyping] = useState(false)
+  const replyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    return () => {
+      if (replyTimerRef.current) clearTimeout(replyTimerRef.current)
+    }
+  }, [])
 
   const profile = PROFILES.find((p) => p.id === matchId)
   const match = state.matches.find((m) => m.profileId === matchId)
@@ -50,14 +57,13 @@ export function Chat() {
     if (!profile) return
     const reply = getMockReply(profile, mockReplyCount)
     if (!reply) return
-    const delay = replyDelay(mockReplyCount)
+    if (replyTimerRef.current) clearTimeout(replyTimerRef.current)
     setTyping(true)
-    const timer = setTimeout(() => {
+    replyTimerRef.current = setTimeout(() => {
       sendMatchMessage(matchId, reply)
       setTyping(false)
-    }, delay)
-    // Cleanup: clear the timer if the component unmounts mid-delay.
-    return () => clearTimeout(timer)
+      replyTimerRef.current = null
+    }, replyDelay(mockReplyCount))
   }
 
   const bottomRef = useRef<HTMLDivElement>(null)
