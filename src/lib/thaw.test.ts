@@ -57,8 +57,8 @@ describe('liveThaw', () => {
   })
 
   it('interpolates progress through the round on top of base', () => {
-    // Halfway through the first round (base 0): 0 + 0.5*0.5 = 0.25.
-    expect(liveThaw(0, 7, 14)).toBeCloseTo(0.25)
+    // Halfway through the first round (base 0): 0 + 0.5 * THAW_PER_GAME.
+    expect(liveThaw(0, 7, 14)).toBeCloseTo(THAW_PER_GAME / 2)
   })
 
   it('caps at PRE_REVEAL_CAP during the round that will fully break the ice', () => {
@@ -77,8 +77,8 @@ describe('crossesFullThaw', () => {
     expect(crossesFullThaw(0.5, 1)).toBe(true)
   })
 
-  it('is false when the round does not reach full thaw', () => {
-    expect(crossesFullThaw(0, 0)).toBe(false)
+  it('is true when the first game from base 0 crosses full thaw', () => {
+    expect(crossesFullThaw(0, 0)).toBe(true)
   })
 
   it('is false when already fully thawed (no second reveal)', () => {

@@ -7,8 +7,12 @@
  * (store, Game, Chat, Matches, ThawReveal) follows.
  */
 
-/** Each completed icebreaker game thaws the portrait by this much. */
-export const THAW_PER_GAME = 0.5
+/**
+ * Each completed icebreaker game thaws the portrait by this much.
+ * 1.0 = one game fully reveals the match — fast enough that the
+ * payoff lands on the first icebreaker rather than requiring a second.
+ */
+export const THAW_PER_GAME = 1.0
 
 /** Completed games needed to fully break the ice (derived from the rate). */
 export const GAMES_TO_FULL_THAW = Math.ceil(1 / THAW_PER_GAME)
