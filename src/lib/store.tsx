@@ -242,6 +242,12 @@ function thawFor(matchId: string, games: GameSession[]): number {
   return thawForGames(played.length)
 }
 
+function latestCompletedGameId(matchId: string, games: GameSession[]): string | undefined {
+  return games
+    .filter((g) => g.matchId === matchId && g.completedAt)
+    .sort((a, b) => (b.completedAt ?? 0) - (a.completedAt ?? 0))[0]?.id
+}
+
 // eslint-disable-next-line react-refresh/only-export-components
 export function reducer(state: State, action: Action): State {
   switch (action.type) {
@@ -335,14 +341,14 @@ export function reducer(state: State, action: Action): State {
       return { ...state, games }
     }
     case 'COMPLETE_GAME': {
-      const completedMatchId = state.games.find((g) => g.id === action.gameId)?.matchId
+      const completedAt = Date.now()
       const games = state.games.map((g) =>
-        g.id === action.gameId ? { ...g, completedAt: Date.now() } : g,
+        g.id === action.gameId ? { ...g, completedAt } : g,
       )
       const matches = state.matches.map((m) => ({
         ...m,
         thaw: thawFor(m.profileId, games),
-        lastGameId: m.profileId === completedMatchId ? action.gameId : m.lastGameId,
+        lastGameId: latestCompletedGameId(m.profileId, games) ?? m.lastGameId,
       }))
       return { ...state, games, matches }
     }

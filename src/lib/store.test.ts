@@ -111,6 +111,27 @@ describe('COMPLETE_GAME', () => {
     }
     const next = reducer(start, { type: 'COMPLETE_GAME', gameId: 'g2' })
     expect(next.matches[0].thaw).toBe(1)
+    expect(next.matches[0].lastGameId).toBe('g2')
+  })
+
+  it('keeps lastGameId on the latest completed game for each match', () => {
+    const start: State = {
+      ...withMatch('p1'),
+      matches: [
+        { profileId: 'p1', matchedAt: 0, thaw: THAW_PER_GAME, lastGameId: 'g1' },
+        { profileId: 'p2', matchedAt: 0, thaw: THAW_PER_GAME, lastGameId: 'g3' },
+      ],
+      games: [
+        { ...gameFor('p1', 'g1', true), completedAt: 10 },
+        gameFor('p1', 'g2'),
+        { ...gameFor('p2', 'g3', true), completedAt: 20 },
+      ],
+    }
+
+    const next = reducer(start, { type: 'COMPLETE_GAME', gameId: 'g2' })
+
+    expect(next.matches.find((m) => m.profileId === 'p1')?.lastGameId).toBe('g2')
+    expect(next.matches.find((m) => m.profileId === 'p2')?.lastGameId).toBe('g3')
   })
 
   it('lastGameId points to the game just completed, not the first game for the match', () => {

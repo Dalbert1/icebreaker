@@ -52,7 +52,7 @@ try {
   await shot(page, '02-discover')
 
   // Like the top card -> match modal.
-  await page.getByRole('button', { name: 'Thaw' }).last().click()
+  await page.getByRole('button', { name: 'Like' }).last().click()
   await shot(page, '03-match')
 
   // Safety in the match flow: expand the low-key report affordance, then cancel.
@@ -62,15 +62,17 @@ try {
   await page.getByRole('button', { name: 'Cancel' }).click()
   await page.waitForTimeout(150)
 
-  // Break the ice -> category picker.
+  // Break the ice -> first game. New matches with profile answers auto-start
+  // the personal "About {Name}" round; older/fallback states may show the
+  // category picker first.
   await page.getByRole('button', { name: 'Break the ice' }).click()
   await page.waitForTimeout(400)
   await shot(page, '04-game-category')
 
-  // Play the personal "About {Name}" round first (pinned at the top of the
-  // picker) -> first question. Exercises the personal-icebreaker feature
-  // end-to-end; the second game below uses a regular trivia category.
-  await page.getByRole('button', { name: /About / }).click()
+  // Exercise the personal-icebreaker feature end-to-end; click the pinned
+  // personal category only when the picker is present.
+  const aboutButton = page.getByRole('button', { name: /About / })
+  if (await aboutButton.count()) await aboutButton.click()
   await shot(page, '05-game-question')
 
   // Answer the first question -> feedback state.
@@ -90,6 +92,17 @@ try {
     await page.waitForTimeout(300)
   }
   await shot(page, '07-want-to-chat')
+
+  // First icebreaker now fully breaks the ice. Capture and dismiss the reveal
+  // if it appears before continuing to chat.
+  await page.waitForTimeout(1700)
+  const meetButton = page.getByRole('button', { name: /^Meet / })
+  if (await meetButton.count()) {
+    await shot(page, '08c-thaw-reveal')
+    await meetButton.click()
+    await page.waitForTimeout(400)
+    await shot(page, '08d-want-to-chat-thawed')
+  }
 
   // Say "Chat now" -> chat screen (shows conversation starters from the round).
   await page.getByRole('button', { name: 'Chat now' }).click()
@@ -112,35 +125,9 @@ try {
   await page.getByRole('button', { name: 'Cancel' }).click()
   await page.waitForTimeout(200)
 
-  // Play a SECOND icebreaker to fully break the ice -> the thaw reveal fires.
-  await page.getByRole('link', { name: /Play Icebreaker/ }).click()
-  await page.waitForTimeout(300)
-  await page.getByRole('button', { name: /Music/ }).click()
-  await page.waitForTimeout(300)
-  await page.locator('main button').nth(1).click()
-  await page.waitForTimeout(300)
-  for (let i = 0; i < 20; i++) {
-    const advance = page.getByRole('button', { name: /Next question|See results/ })
-    if (!(await advance.count())) break
-    const last = /See results/.test((await advance.textContent()) ?? '')
-    await advance.click()
-    await page.waitForTimeout(300)
-    if (last) break
-    await page.locator('main button').nth(1).click()
-    await page.waitForTimeout(300)
-  }
-  // Full-thaw "money shot" overlay (let the melt + shards settle).
-  await page.waitForTimeout(1700)
-  await shot(page, '08c-thaw-reveal')
-
-  // Dismiss the reveal -> fully-thawed results screen.
-  await page.getByRole('button', { name: /^Meet / }).click()
-  await page.waitForTimeout(400)
-  await shot(page, '08d-want-to-chat-thawed')
-
   // Replay -> category picker now shows the personal round in its "Played"
   // state (and a revealed name, since the ice is fully broken).
-  await page.getByRole('button', { name: 'Play another game' }).click()
+  await page.getByRole('link', { name: /Play Icebreaker/ }).click()
   await page.waitForTimeout(300)
   await shot(page, '08g-personal-played')
 

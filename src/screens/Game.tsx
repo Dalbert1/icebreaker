@@ -11,7 +11,7 @@ import { ThawBar } from '../components/ui'
 import { crossesFullThaw, revealedName } from '../lib/thaw'
 import { scoreGame, syncLevel } from '../lib/score'
 import { getLearnedFacts, personalCategoryLabel } from '../lib/personalQuestions'
-import { displayThaw, shouldAutoStartPersonal } from '../lib/gamePolicy'
+import { displayThaw as displayThawForGame, shouldAutoStartPersonal } from '../lib/gamePolicy'
 
 type Phase = 'category' | 'playing' | 'wantchat'
 const QUESTION_SECONDS = 15
@@ -93,7 +93,7 @@ export function Game() {
     setLoading(false)
   }
 
-  const liveThaw = displayThaw(match, game)
+  const displayThaw = displayThawForGame(match, game)
 
   return (
     <div className="flex h-full flex-col px-4">
@@ -108,13 +108,13 @@ export function Game() {
               <path d="M15 18l-6-6 6-6" />
             </svg>
           </button>
-          <GradientPortrait profile={profile} thaw={liveThaw} className="h-11 w-11 rounded-xl" />
+          <GradientPortrait profile={profile} thaw={displayThaw} className="h-11 w-11 rounded-xl" />
           <div className="min-w-0 flex-1">
             <h2 className="truncate text-lg leading-tight text-frost">
-              {revealedName(profile.name, liveThaw)}
+              {revealedName(profile.name, displayThaw)}
             </h2>
             <div className="mt-0.5">
-              <ThawBar thaw={liveThaw} showLabel={false} />
+              <ThawBar thaw={displayThaw} showLabel={false} />
             </div>
           </div>
         </header>
@@ -173,7 +173,7 @@ export function Game() {
           <WantToChat
             game={game}
             profile={profile}
-            thaw={liveThaw}
+            thaw={displayThaw}
             onYes={() => navigate(`/chat/${matchId}`, { replace: true })}
             onReplay={() => {
               setGameId(null)
