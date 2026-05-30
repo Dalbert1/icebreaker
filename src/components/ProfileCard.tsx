@@ -2,10 +2,11 @@ import type { Profile } from '../types'
 import { GradientPortrait } from './GradientPortrait'
 import { VibePill } from './ui'
 
-// Product-review prototype: Discover can hide real photos behind a 0% thaw state
-// without changing matched/game portrait reveal behavior.
-const DISCOVER_CARD_THAW = 0
-const DISCOVER_CARD_REVEAL_PHOTO = false
+// Discover cards show the real photo at 30% thaw — visibly frosted but
+// identifiable. The full clear happens in ThawReveal after the first game,
+// which is the meaningful reveal moment.
+const DISCOVER_CARD_THAW = 0.3
+const DISCOVER_CARD_REVEAL_PHOTO = true
 
 /** The visual face of a profile in the discovery deck. */
 export function ProfileCard({ profile }: { profile: Profile }) {
@@ -24,18 +25,6 @@ export function ProfileCard({ profile }: { profile: Profile }) {
       </div>
 
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_18%,color-mix(in_oklab,var(--color-frost)_22%,transparent),transparent_42%),linear-gradient(135deg,color-mix(in_oklab,var(--color-glacial)_18%,transparent),transparent_45%,color-mix(in_oklab,var(--color-aurora)_16%,transparent))]" />
-
-      {!DISCOVER_CARD_REVEAL_PHOTO && (
-        <svg
-          viewBox="0 0 240 320"
-          preserveAspectRatio="xMidYMid meet"
-          className="pointer-events-none absolute left-1/2 top-[13%] h-[43%] max-h-80 w-[58%] -translate-x-1/2 text-frost/35 mix-blend-soft-light"
-          aria-hidden
-        >
-          <circle cx="120" cy="104" r="54" fill="currentColor" />
-          <path d="M36 306 C 42 218, 76 178, 120 178 C 164 178, 198 218, 204 306 Z" fill="currentColor" />
-        </svg>
-      )}
 
       {/* readability scrim */}
       <div
