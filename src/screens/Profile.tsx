@@ -3,6 +3,12 @@ import { ME } from '../data/profiles'
 import { GradientPortrait } from '../components/GradientPortrait'
 import { VibePill, Glass } from '../components/ui'
 
+const LOOP_STEPS = [
+  { icon: '❄️', text: 'Swipe right (thaw) to match, left (frost) to pass.' },
+  { icon: '🧊', text: 'Play one icebreaker to reveal the person behind the frost.' },
+  { icon: '💬', text: 'Chat once the ice is broken — real talk, no awkward opener.' },
+]
+
 export function Profile() {
   const { state, isSupabaseConfigured, reset, signOut } = useStore()
   const roundsPlayed = state.games.filter((g) => g.completedAt).length
@@ -74,17 +80,31 @@ export function Profile() {
         </Glass>
       )}
 
-      <div className="mt-auto pt-6">
+      <Glass className="mt-4 p-4">
+        <p className="mb-3 text-[11px] font-semibold uppercase tracking-widest text-ice/60">
+          How it works
+        </p>
+        <div className="flex flex-col gap-2.5">
+          {LOOP_STEPS.map((step) => (
+            <div key={step.icon} className="flex items-start gap-3">
+              <span className="shrink-0 text-lg">{step.icon}</span>
+              <p className="text-sm leading-snug text-frost/80">{step.text}</p>
+            </div>
+          ))}
+        </div>
+      </Glass>
+
+      <div className="mt-auto pt-5">
         <button
           onClick={() => {
             if (confirm('Reset the demo? This clears matches, likes, and games.')) reset()
           }}
           className="w-full rounded-2xl border border-frost/12 py-3 text-sm font-medium text-frost/55 hover:border-ember/40 hover:text-ember"
         >
-          Reset demo data
+          Restart demo
         </button>
         <p className="mt-2 text-center text-[11px] text-frost/35">
-          POC · mock data · no account yet
+          POC · mock data · no account needed
         </p>
       </div>
     </div>
