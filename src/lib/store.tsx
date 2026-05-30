@@ -365,6 +365,8 @@ interface Store {
   reportProfile: (id: string) => void
   dismissMatch: () => void
   sendMessage: (matchId: string, body: string) => void
+  /** Dispatch a simulated 'them' message (POC mock reply — not from a real user). */
+  sendMatchMessage: (matchId: string, body: string) => void
   startGame: (matchId: string, category: TriviaCategory) => Promise<string>
   /** Start the personal "About {Name}" round, built from the match's profile. */
   startPersonalGame: (matchId: string) => Promise<string>
@@ -448,6 +450,20 @@ export function StoreProvider({ children }: { children: ReactNode }) {
             id: `m${Date.now()}-${messageCounter++}`,
             matchId,
             sender: 'you',
+            body: trimmed,
+            sentAt: Date.now(),
+          },
+        })
+      },
+      sendMatchMessage: (matchId, body) => {
+        const trimmed = body.trim()
+        if (!trimmed) return
+        dispatch({
+          type: 'SEND_MESSAGE',
+          message: {
+            id: `m${Date.now()}-${messageCounter++}`,
+            matchId,
+            sender: 'them',
             body: trimmed,
             sentAt: Date.now(),
           },

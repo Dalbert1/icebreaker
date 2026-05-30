@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useStore } from '../lib/store'
 import { PROFILES } from '../data/profiles'
 import { conversationStartersFor } from '../lib/conversationStarters'
+import { getMockReply, replyDelay } from '../lib/mockReplies'
 import { isThawRevealed, revealedName } from '../lib/thaw'
 import { GradientPortrait } from '../components/GradientPortrait'
 import { ThawBar, VibePill } from '../components/ui'
@@ -10,10 +11,11 @@ import { ThawBar, VibePill } from '../components/ui'
 export function Chat() {
   const { matchId = '' } = useParams()
   const navigate = useNavigate()
-  const { state, sendMessage, unmatch, reportProfile } = useStore()
+  const { state, sendMessage, sendMatchMessage, unmatch, reportProfile } = useStore()
   const [input, setInput] = useState('')
   const [menuOpen, setMenuOpen] = useState(false)
   const [confirming, setConfirming] = useState<'report' | 'unmatch' | null>(null)
+  const [typing, setTyping] = useState(false)
 
   const profile = PROFILES.find((p) => p.id === matchId)
   const match = state.matches.find((m) => m.profileId === matchId)
@@ -38,15 +40,30 @@ export function Chat() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile?.id, completedGames.length])
 
+  // Count how many mock replies have been sent so far (capped by getMockReply).
+  const mockReplyCount = messages.filter((m) => m.sender === 'them').length
+
   function send(body: string) {
     sendMessage(matchId, body)
     setInput('')
+    // Trigger a mock reply if the match still has things to say.
+    if (!profile) return
+    const reply = getMockReply(profile, mockReplyCount)
+    if (!reply) return
+    const delay = replyDelay(mockReplyCount)
+    setTyping(true)
+    const timer = setTimeout(() => {
+      sendMatchMessage(matchId, reply)
+      setTyping(false)
+    }, delay)
+    // Cleanup: clear the timer if the component unmounts mid-delay.
+    return () => clearTimeout(timer)
   }
 
   const bottomRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages.length])
+  }, [messages.length, typing])
 
   if (!profile || !match) {
     return (
@@ -203,6 +220,15 @@ export function Chat() {
                 </div>
               </div>
             ))}
+            {typing && (
+              <div className="flex justify-start">
+                <div className="glass flex items-center gap-1 rounded-2xl rounded-bl-md px-3.5 py-2.5">
+                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-frost/50 [animation-delay:-0.3s]" />
+                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-frost/50 [animation-delay:-0.15s]" />
+                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-frost/50" />
+                </div>
+              </div>
+            )}
             <div ref={bottomRef} />
           </div>
         )}
