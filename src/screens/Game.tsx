@@ -8,9 +8,10 @@ import type { GameSession, Profile, TriviaCategory } from '../types'
 import { GradientPortrait } from '../components/GradientPortrait'
 import { ThawReveal } from '../components/ThawReveal'
 import { ThawBar } from '../components/ui'
-import { crossesFullThaw, liveThaw as computeLiveThaw, revealedName } from '../lib/thaw'
+import { crossesFullThaw, revealedName } from '../lib/thaw'
 import { scoreGame, syncLevel } from '../lib/score'
 import { getLearnedFacts, personalCategoryLabel } from '../lib/personalQuestions'
+import { displayThaw, shouldAutoStartPersonal } from '../lib/gamePolicy'
 
 type Phase = 'category' | 'playing' | 'wantchat'
 const QUESTION_SECONDS = 15
@@ -34,10 +35,13 @@ export function Game() {
   // breaks the ice completely, then cleared once the reveal is dismissed.
   const [revealFrom, setRevealFrom] = useState<number | null>(null)
 
-  // Auto-start the personal "About {Name}" game for a brand-new match that has
-  // profile answers — skips the category picker entirely on the first play.
+  // Auto-start the personal "About {Name}" game for a brand-new match.
   const completedCount = state.games.filter((g) => g.matchId === matchId && g.completedAt).length
-  const shouldAutoPersonal = !existing && completedCount === 0 && Boolean(profile?.profileAnswers)
+  const shouldAutoPersonal = shouldAutoStartPersonal(
+    completedCount,
+    Boolean(existing),
+    Boolean(profile?.profileAnswers),
+  )
   const autoStartedRef = useRef(false)
 
   useEffect(() => {
@@ -89,13 +93,7 @@ export function Game() {
     setLoading(false)
   }
 
-  // live thaw: existing thaw + in-round progress — only while the game is
-  // incomplete. Once completeGame fires, match.thaw already includes this
-  // round; re-adding the progress would double-count it.
-  const answered = game && !game.completedAt ? game.userAnswers.filter((a) => a >= 0).length : 0
-  const liveThaw = game && !game.completedAt
-    ? computeLiveThaw(match.thaw, answered, game.questions.length)
-    : match.thaw
+  const liveThaw = displayThaw(match, game)
 
   return (
     <div className="flex h-full flex-col px-4">
