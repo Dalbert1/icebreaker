@@ -68,10 +68,11 @@ export function Game() {
     setLoading(false)
   }
 
-  // live thaw: existing thaw + progress through this round (held back in the
-  // round that will fully break the ice, so the melt lands in ThawReveal).
-  const answered = game ? game.userAnswers.filter((a) => a >= 0).length : 0
-  const liveThaw = game
+  // live thaw: existing thaw + in-round progress — only while the game is
+  // incomplete. Once completeGame fires, match.thaw already includes this
+  // round; re-adding the progress would double-count it.
+  const answered = game && !game.completedAt ? game.userAnswers.filter((a) => a >= 0).length : 0
+  const liveThaw = game && !game.completedAt
     ? computeLiveThaw(match.thaw, answered, game.questions.length)
     : match.thaw
 

@@ -335,13 +335,14 @@ export function reducer(state: State, action: Action): State {
       return { ...state, games }
     }
     case 'COMPLETE_GAME': {
+      const completedMatchId = state.games.find((g) => g.id === action.gameId)?.matchId
       const games = state.games.map((g) =>
         g.id === action.gameId ? { ...g, completedAt: Date.now() } : g,
       )
       const matches = state.matches.map((m) => ({
         ...m,
         thaw: thawFor(m.profileId, games),
-        lastGameId: games.find((g) => g.matchId === m.profileId)?.id ?? m.lastGameId,
+        lastGameId: m.profileId === completedMatchId ? action.gameId : m.lastGameId,
       }))
       return { ...state, games, matches }
     }

@@ -112,6 +112,30 @@ describe('COMPLETE_GAME', () => {
     const next = reducer(start, { type: 'COMPLETE_GAME', gameId: 'g2' })
     expect(next.matches[0].thaw).toBe(1)
   })
+
+  it('lastGameId points to the game just completed, not the first game for the match', () => {
+    const start = {
+      ...withMatch('p1'),
+      games: [gameFor('p1', 'g1', true), gameFor('p1', 'g2')],
+      matches: [{ profileId: 'p1', matchedAt: 0, thaw: THAW_PER_GAME, lastGameId: 'g1' }],
+    }
+    const next = reducer(start, { type: 'COMPLETE_GAME', gameId: 'g2' })
+    expect(next.matches[0].lastGameId).toBe('g2')
+  })
+
+  it('does not update lastGameId for unrelated matches', () => {
+    const start: State = {
+      ...initialState(),
+      matches: [
+        { profileId: 'p1', matchedAt: 0, thaw: 0 },
+        { profileId: 'p2', matchedAt: 0, thaw: 0, lastGameId: 'g0' },
+      ],
+      games: [gameFor('p1', 'g1')],
+    }
+    const next = reducer(start, { type: 'COMPLETE_GAME', gameId: 'g1' })
+    expect(next.matches.find((m) => m.profileId === 'p1')?.lastGameId).toBe('g1')
+    expect(next.matches.find((m) => m.profileId === 'p2')?.lastGameId).toBe('g0')
+  })
 })
 
 describe('SEND_MESSAGE', () => {
