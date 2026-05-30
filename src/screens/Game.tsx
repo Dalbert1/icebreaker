@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'motion/react'
 import { useStore } from '../lib/store'
@@ -33,6 +33,27 @@ export function Game() {
   // The full-thaw "money shot": set to the pre-completion thaw when a round
   // breaks the ice completely, then cleared once the reveal is dismissed.
   const [revealFrom, setRevealFrom] = useState<number | null>(null)
+
+  // Auto-start the personal "About {Name}" game for a brand-new match that has
+  // profile answers — skips the category picker entirely on the first play.
+  const completedCount = state.games.filter((g) => g.matchId === matchId && g.completedAt).length
+  const shouldAutoPersonal = !existing && completedCount === 0 && Boolean(profile?.profileAnswers)
+  const autoStartedRef = useRef(false)
+
+  useEffect(() => {
+    if (!shouldAutoPersonal || autoStartedRef.current) return
+    autoStartedRef.current = true
+    setLoading(true)
+    startPersonalGame(matchId).then((id) => {
+      setGameId(id)
+      setQIndex(0)
+      setPicked(null)
+      setPhase('playing')
+      setLoading(false)
+    })
+  // startPersonalGame is re-created per store state; the ref guards re-entry.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shouldAutoPersonal, matchId])
 
   const game = state.games.find((g) => g.id === gameId) ?? null
 
@@ -102,7 +123,12 @@ export function Game() {
       )}
 
       <div className="flex min-h-0 flex-1 flex-col">
-        {phase === 'category' && (
+        {phase === 'category' && shouldAutoPersonal && (
+          <div className="flex flex-1 items-center justify-center">
+            <p className="text-sm text-frost/50">Starting your icebreaker…</p>
+          </div>
+        )}
+        {phase === 'category' && !shouldAutoPersonal && (
           <CategoryPicker
             loading={loading}
             onPick={pickCategory}
